@@ -172,7 +172,7 @@ void OptimalList<T>::setOptimalCapacity()
         } while (true);
     }
     else
-    if (mCount>=aNewCapacity)
+    if (mCount>aNewCapacity)
     {
         if (aNewCapacity==0)
         {
@@ -182,14 +182,12 @@ void OptimalList<T>::setOptimalCapacity()
         {
             do
             {
-                int aTempCapacity=aNewCapacity << 1;
-
-                if (mCount<aTempCapacity)
+                if (mCount<=aNewCapacity)
                 {
                     break;
                 }
 
-                aNewCapacity=aTempCapacity;
+                aNewCapacity = aNewCapacity << 1;
             } while (true);
         }
     }
@@ -212,8 +210,6 @@ void OptimalList<T>::setOptimalCapacity()
                 {
                     aNewBuffer[i]=mBuffer[i];
                 }
-
-                qDebug()<<mBuffer;
 
                 delete[] mBuffer;
             }

@@ -6,6 +6,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    OptimalList<int> a;
+
+    for (int i=0; i<10000000; i++)
+    {
+        a.append(i);
+    }
 }
 
 MainWindow::~MainWindow()

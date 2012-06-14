@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-TARGET = StackViewer
+TARGET = OptimalList
 TEMPLATE = app
 
 RC_FILE = Resources.rc
