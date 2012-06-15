@@ -2,7 +2,7 @@
 #define OPTIMALLIST_H
 
 #include <QDebug>
-#include <QList>
+#include <QByteArray>
 
 template <typename T>
 class OptimalList
@@ -27,9 +27,15 @@ public:
     int count() const;
 
 protected:
-    T** mBuffer;
-    int mCount;
-    int mCapacity;
+    enum
+    {
+        isLarge       = QTypeInfo<T>::isLarge || QTypeInfo<T>::isStatic,
+        sizeOfElement = isLarge ? sizeof(void *) : sizeof(T)
+    };
+
+    void* mBuffer;
+    int   mCount;
+    int   mCapacity;
 
     void setOptimalCapacity();
 };
@@ -40,6 +46,17 @@ OptimalList<T>::OptimalList()
     mBuffer=0;
     mCount=0;
     mCapacity=0;
+
+   // mIsLarge=QTypeInfo<T>::isLarge || QTypeInfo<T>::isStatic;
+/*
+    if (mIsLarge)
+    {
+        mSizeOfT=sizeof(void *);
+    }
+    else
+    {
+        mSizeOfT=sizeof(T);
+    }*/
 }
 
 template <typename T>
@@ -51,6 +68,14 @@ OptimalList<T>::~OptimalList()
 template <typename T>
 void OptimalList<T>::clear()
 {
+    if (isLarge)
+    {
+        for (int i=0; i<mCount; ++i)
+        {
+            delete *reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+        }
+    }
+
     mCount=0;
     setOptimalCapacity();
 }
@@ -61,8 +86,14 @@ void OptimalList<T>::append(const T &t)
     ++mCount;
     setOptimalCapacity();
 
-    mBuffer[mCount-1]=new T();
-    *mBuffer[mCount-1]=t;
+    if (isLarge)
+    {
+        *reinterpret_cast<T**>(mBuffer+(mCount-1)*sizeOfElement)=new T(t);
+    }
+    else
+    {
+        *reinterpret_cast<T*>(mBuffer+(mCount-1)*sizeOfElement)=t;
+    }
 }
 
 template <typename T>
@@ -73,13 +104,16 @@ void OptimalList<T>::insert(int i, const T &t)
     ++mCount;
     setOptimalCapacity();
 
-    for (int j=mCount-1; j>i; --j)
-    {
-        mBuffer[j]=mBuffer[j-1];
-    }
+    memmove(mBuffer+(i+1)*sizeOfElement, mBuffer+i*sizeOfElement, (mCount-i-1)*sizeOfElement);
 
-    mBuffer[i]=new T();
-    *mBuffer[i]=t;
+    if (isLarge)
+    {
+        *reinterpret_cast<T**>(mBuffer+i*sizeOfElement)=new T(t);
+    }
+    else
+    {
+        *reinterpret_cast<T*>(mBuffer+i*sizeOfElement)=t;
+    }
 }
 
 template <typename T>
@@ -87,10 +121,12 @@ void OptimalList<T>::removeAt(int i)
 {
     Q_ASSERT_X(i >= 0 && i < mCount, "OptimalList<T>::removeAt", "index out of range");
 
-    for (int j=i+1; j<mCount; ++j)
+    if (isLarge)
     {
-        mBuffer[j-1]=mBuffer[j];
+        delete *reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
     }
+
+    memmove(mBuffer+i*sizeOfElement, mBuffer+(i+1)*sizeOfElement, (mCount-i-1)*sizeOfElement);
 
     --mCount;
     setOptimalCapacity();
@@ -110,7 +146,14 @@ const T &OptimalList<T>::at(int i) const
 {
     Q_ASSERT_X(i >= 0 && i < mCount, "OptimalList<T>::at", "index out of range");
 
-    return *mBuffer[i];
+    if (isLarge)
+    {
+        return **reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+    }
+    else
+    {
+        return *reinterpret_cast<T*>(mBuffer+i*sizeOfElement);
+    }
 }
 
 template <typename T>
@@ -118,7 +161,14 @@ const T &OptimalList<T>::operator[](int i) const
 {
     Q_ASSERT_X(i >= 0 && i < mCount, "OptimalList<T>::operator[]", "index out of range");
 
-    return *mBuffer[i];
+    if (isLarge)
+    {
+        return **reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+    }
+    else
+    {
+        return *reinterpret_cast<T*>(mBuffer+i*sizeOfElement);
+    }
 }
 
 template <typename T>
@@ -126,7 +176,14 @@ T &OptimalList<T>::operator[](int i)
 {
     Q_ASSERT_X(i >= 0 && i < mCount, "OptimalList<T>::operator[]", "index out of range");
 
-    return *mBuffer[i];
+    if (isLarge)
+    {
+        return **reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+    }
+    else
+    {
+        return *reinterpret_cast<T*>(mBuffer+i*sizeOfElement);
+    }
 }
 
 template <typename T>
@@ -194,30 +251,18 @@ void OptimalList<T>::setOptimalCapacity()
 
     if (mCapacity!=aNewCapacity)
     {
-        if (aNewCapacity==0)
+        mCapacity=aNewCapacity;
+
+        if (mCapacity==0)
         {
-            delete[] mBuffer;
+            free(mBuffer);
             mBuffer=0;
         }
         else
         {
-            T** aNewBuffer=new T*[aNewCapacity];
-            Q_CHECK_PTR(aNewBuffer);
-
-            if (mBuffer)
-            {
-                for (int i=0; i<aNewCapacity && i<mCapacity; ++i)
-                {
-                    aNewBuffer[i]=mBuffer[i];
-                }
-
-                delete[] mBuffer;
-            }
-
-            mBuffer=aNewBuffer;
+            mBuffer = realloc(mBuffer, mCapacity*sizeOfElement);
+            Q_CHECK_PTR(mBuffer);
         }
-
-        mCapacity=aNewCapacity;
     }
 }
 

@@ -12,6 +12,8 @@ TEMPLATE = app
 RC_FILE = Resources.rc
 RESOURCES += Resources.qrc
 
+LIBS += -L"libs" -lpsapi
+
 SOURCES += src/main.cpp\
            src/main/mainwindow.cpp
 

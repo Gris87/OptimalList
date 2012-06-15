@@ -3,12 +3,25 @@
 
 #include <QMainWindow>
 
+#include <QDateTime>
+
+#include <windows.h>
+#include <psapi.h>
+#pragma comment(lib,"psapi.lib")
+
 #include <QList>
 #include "src/list/optimallist.h"
 
 namespace Ui {
 class MainWindow;
 }
+
+struct sStruct
+{
+    int a;
+    long b;
+    double c;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -18,8 +31,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+private slots:
+    void on_startButton_clicked();
+
 private:
     Ui::MainWindow *ui;
+
+    template <typename T> void testList(const QString aElementName);
 };
 
 #endif // MAINWINDOW_H
