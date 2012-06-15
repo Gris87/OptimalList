@@ -72,7 +72,7 @@ void OptimalList<T>::clear()
     {
         for (int i=0; i<mCount; ++i)
         {
-            delete *reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+            delete *reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
         }
     }
 
@@ -88,11 +88,11 @@ void OptimalList<T>::append(const T &t)
 
     if (isLarge)
     {
-        *reinterpret_cast<T**>(mBuffer+(mCount-1)*sizeOfElement)=new T(t);
+        *reinterpret_cast<T**>((long)mBuffer+(mCount-1)*sizeOfElement)=new T(t);
     }
     else
     {
-        *reinterpret_cast<T*>(mBuffer+(mCount-1)*sizeOfElement)=t;
+        *reinterpret_cast<T*>((long)mBuffer+(mCount-1)*sizeOfElement)=t;
     }
 }
 
@@ -104,15 +104,15 @@ void OptimalList<T>::insert(int i, const T &t)
     ++mCount;
     setOptimalCapacity();
 
-    memmove(mBuffer+(i+1)*sizeOfElement, mBuffer+i*sizeOfElement, (mCount-i-1)*sizeOfElement);
+    memmove((long)mBuffer+(i+1)*sizeOfElement, (long)mBuffer+i*sizeOfElement, (mCount-i-1)*sizeOfElement);
 
     if (isLarge)
     {
-        *reinterpret_cast<T**>(mBuffer+i*sizeOfElement)=new T(t);
+        *reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement)=new T(t);
     }
     else
     {
-        *reinterpret_cast<T*>(mBuffer+i*sizeOfElement)=t;
+        *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement)=t;
     }
 }
 
@@ -123,10 +123,10 @@ void OptimalList<T>::removeAt(int i)
 
     if (isLarge)
     {
-        delete *reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+        delete *reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
     }
 
-    memmove(mBuffer+i*sizeOfElement, mBuffer+(i+1)*sizeOfElement, (mCount-i-1)*sizeOfElement);
+    memmove((long)mBuffer+i*sizeOfElement, (long)mBuffer+(i+1)*sizeOfElement, (mCount-i-1)*sizeOfElement);
 
     --mCount;
     setOptimalCapacity();
@@ -148,11 +148,11 @@ const T &OptimalList<T>::at(int i) const
 
     if (isLarge)
     {
-        return **reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+        return **reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
     }
     else
     {
-        return *reinterpret_cast<T*>(mBuffer+i*sizeOfElement);
+        return *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement);
     }
 }
 
@@ -163,11 +163,11 @@ const T &OptimalList<T>::operator[](int i) const
 
     if (isLarge)
     {
-        return **reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+        return **reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
     }
     else
     {
-        return *reinterpret_cast<T*>(mBuffer+i*sizeOfElement);
+        return *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement);
     }
 }
 
@@ -178,11 +178,11 @@ T &OptimalList<T>::operator[](int i)
 
     if (isLarge)
     {
-        return **reinterpret_cast<T**>(mBuffer+i*sizeOfElement);
+        return **reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
     }
     else
     {
-        return *reinterpret_cast<T*>(mBuffer+i*sizeOfElement);
+        return *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement);
     }
 }
 

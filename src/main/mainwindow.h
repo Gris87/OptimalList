@@ -7,10 +7,11 @@
 
 #include <windows.h>
 #include <psapi.h>
-#pragma comment(lib,"psapi.lib")
 
 #include <QList>
 #include "src/list/optimallist.h"
+
+#include "src/widgets/tablenumericitem.h"
 
 namespace Ui {
 class MainWindow;

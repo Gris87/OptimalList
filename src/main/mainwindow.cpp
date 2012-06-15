@@ -7,7 +7,11 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->testsTableWidget->setColumnWidth(0, 400);
+    ui->testsTableWidget->setColumnWidth(0, 25);
+    ui->testsTableWidget->setColumnWidth(1, 400);
+    ui->testsTableWidget->setColumnWidth(2, 125);
+    ui->testsTableWidget->setColumnWidth(3, 125);
+    ui->testsTableWidget->setColumnWidth(4, 75);
 }
 
 MainWindow::~MainWindow()
@@ -23,7 +27,7 @@ void MainWindow::testList(const QString aElementName)
     T aValue;
     qint64 aStart;
     qint64 aTimeStamp;
-    int aElemCount=10000000;
+    int aElemCount=30000000; // 1GB RAM free required
     qint64 aMemoryBefore;
     qint64 aMemoryAfter;
     HANDLE aProcess=GetCurrentProcess();
@@ -46,15 +50,18 @@ void MainWindow::testList(const QString aElementName)
     GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
     aMemoryAfter=aMemory.WorkingSetSize;
 
+
+
     ui->testsTableWidget->setRowCount(ui->testsTableWidget->rowCount()+2);
 
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 0, new TableNumericItem(QString::number(ui->testsTableWidget->rowCount()-1)));
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 0, new TableNumericItem(QString::number(ui->testsTableWidget->rowCount())));
 
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Memory, bytes ("+QString::number(sizeof(T))+" bytes per element)"));
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 2, new TableNumericItem(QString::number(aMemoryAfter-aMemoryBefore)));
 
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 0, new QTableWidgetItem("Time to fill QList with "+QString::number(aElemCount)+" \""+aElementName+"\" elements"));
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 1, new QTableWidgetItem(QString::number(aTimeStamp-aStart)+" ms"));
-
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 0, new QTableWidgetItem("Memory usage while QList filled with "+QString::number(aElemCount)+" \""+aElementName+"\" elements"));
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 1, new QTableWidgetItem(QString::number(aMemoryAfter-aMemoryBefore)));
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for appending, ms"));
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 2, new TableNumericItem(QString::number(aTimeStamp-aStart)));
 
 
 
@@ -82,42 +89,53 @@ void MainWindow::testList(const QString aElementName)
     GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
     aMemoryAfter=aMemory.WorkingSetSize;
 
-    ui->testsTableWidget->setRowCount(ui->testsTableWidget->rowCount()+2);
 
 
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 3, new TableNumericItem(QString::number(aMemoryAfter-aMemoryBefore)));
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 3, new TableNumericItem(QString::number(aTimeStamp-aStart)));
 
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 0, new QTableWidgetItem("Time to fill OptimalList with "+QString::number(aElemCount)+" \""+aElementName+"\" elements"));
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 1, new QTableWidgetItem(QString::number(aTimeStamp-aStart)+" ms"));
-
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 0, new QTableWidgetItem("Memory usage while OptimalList filled with "+QString::number(aElemCount)+" \""+aElementName+"\" elements"));
-    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 1, new QTableWidgetItem(QString::number(aMemoryAfter-aMemoryBefore)));
-
-
-
-    if (ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-4, 1)->text().left(ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-4, 1)->text().length()-3).toInt()>aTimeStamp-aStart)
+    if (aMemoryAfter-aMemoryBefore!=0)
     {
-        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 1)->setTextColor(QColor(0, 128, 0));
+        ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-2, 4, new TableNumericItem(QString::number(ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 2)->text().toInt()/((float)(aMemoryAfter-aMemoryBefore)), 'f', 3)));
+    }
+
+    if (aTimeStamp-aStart!=0)
+    {
+        ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 4, new TableNumericItem(QString::number(ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 2)->text().toInt()/((float)(aTimeStamp-aStart)), 'f', 3)));
+    }
+
+
+
+    if (ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 2)->text().toInt()>aMemoryAfter-aMemoryBefore)
+    {
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 3)->setTextColor(QColor(128, 128, 255));
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 4)->setTextColor(QColor(128, 128, 255));
     }
     else
     {
-        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 1)->setTextColor(QColor(128, 0, 0));
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 3)->setTextColor(QColor(255, 128, 128));
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 4)->setTextColor(QColor(255, 128, 128));
     }
 
-    if (ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-3, 1)->text().toInt()>aMemoryAfter-aMemoryBefore)
+    if (ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 2)->text().toInt()>aTimeStamp-aStart)
     {
-        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 1)->setTextColor(QColor(0, 128, 0));
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 3)->setTextColor(QColor(0, 128, 0));
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 4)->setTextColor(QColor(0, 128, 0));
     }
     else
     {
-        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 1)->setTextColor(QColor(128, 0, 0));
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 3)->setTextColor(QColor(128, 0, 0));
+        ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 4)->setTextColor(QColor(128, 0, 0));
     }
 
-    ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 1)->setFont(QFont("Arial", 12, QFont::Bold));
-    ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 1)->setFont(QFont("Arial", 12, QFont::Bold));
 
 
+    ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 3)->setFont(QFont("Arial", 12, QFont::Bold));
+    ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-2, 4)->setFont(QFont("Arial", 12, QFont::Bold));
+    ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 3)->setFont(QFont("Arial", 12, QFont::Bold));
+    ui->testsTableWidget->item(ui->testsTableWidget->rowCount()-1, 4)->setFont(QFont("Arial", 12, QFont::Bold));
 
-    ui->testsTableWidget->scrollToBottom();
+
 
     ui->progressBar->setValue(ui->progressBar->value()+1);
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -127,6 +145,7 @@ void MainWindow::testList(const QString aElementName)
 
 void MainWindow::on_startButton_clicked()
 {
+    ui->testsTableWidget->setSortingEnabled(false);
     ui->testsTableWidget->clearContents();
     ui->testsTableWidget->setRowCount(0);
 
@@ -150,6 +169,9 @@ void MainWindow::on_startButton_clicked()
     testList<long double>("long double");
     testList<sStruct>("sStruct");
     //testList<QString>("QString");
+
+    ui->testsTableWidget->setSortingEnabled(true);
+    ui->testsTableWidget->sortByColumn(0, Qt::AscendingOrder);
 
     ui->progressBar->setValue(0);
 }
