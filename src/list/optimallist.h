@@ -31,7 +31,7 @@ protected:
     {
         // Should like this, but we use as below. Maybe it is good
 //      isLarge       = QTypeInfo<T>::isLarge        || QTypeInfo<T>::isStatic,
-        isLarge       = (sizeof(T)>sizeof(void *)*4) || QTypeInfo<T>::isStatic,
+        isLarge       = (sizeof(T)>sizeof(void *)*4),// || QTypeInfo<T>::isStatic,
         sizeOfElement = isLarge ? sizeof(void *) : sizeof(T)
     };
 

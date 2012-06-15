@@ -38,6 +38,9 @@ private slots:
 private:
     Ui::MainWindow *ui;
 
+    void setItemAndScroll(int row, int column, QString aText);
+    void calculateRate(int row);
+    void setAndCalculate(int row, QString aText);
     template <typename T> void testList(const QString aElementName);
 };
 
