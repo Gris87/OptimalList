@@ -29,7 +29,9 @@ public:
 protected:
     enum
     {
-        isLarge       = QTypeInfo<T>::isLarge || QTypeInfo<T>::isStatic,
+        // Should like this, but we use as below. Maybe it is good
+//      isLarge       = QTypeInfo<T>::isLarge        || QTypeInfo<T>::isStatic,
+        isLarge       = (sizeof(T)>sizeof(void *)*4) || QTypeInfo<T>::isStatic,
         sizeOfElement = isLarge ? sizeof(void *) : sizeof(T)
     };
 
@@ -46,17 +48,6 @@ OptimalList<T>::OptimalList()
     mBuffer=0;
     mCount=0;
     mCapacity=0;
-
-   // mIsLarge=QTypeInfo<T>::isLarge || QTypeInfo<T>::isStatic;
-/*
-    if (mIsLarge)
-    {
-        mSizeOfT=sizeof(void *);
-    }
-    else
-    {
-        mSizeOfT=sizeof(T);
-    }*/
 }
 
 template <typename T>

@@ -25,9 +25,15 @@ void MainWindow::testList(const QString aElementName)
     OptimalList<T> aMyList;
     QList<T> aQtList;
     T aValue;
+
+    //int aElemCount=30000000; // 1GB RAM free required
+    int aElemCount=3000000;
+
+    int lastRow=ui->testsTableWidget->rowCount();
+
     qint64 aStart;
     qint64 aTimeStamp;
-    int aElemCount=30000000; // 1GB RAM free required
+
     qint64 aMemoryBefore;
     qint64 aMemoryAfter;
     HANDLE aProcess=GetCurrentProcess();
@@ -70,9 +76,29 @@ void MainWindow::testList(const QString aElementName)
     ui->progressBar->setValue(ui->progressBar->value()+1);
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
+    //------------------------------------------------------------
+
+    aStart=QDateTime::currentMSecsSinceEpoch();
+
     aQtList.clear();
 
-    //------------------------------------------------------------
+    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    ui->testsTableWidget->setRowCount(ui->testsTableWidget->rowCount()+1);
+
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 0, new TableNumericItem(QString::number(ui->testsTableWidget->rowCount())));
+
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for clearing, ms"));
+    ui->testsTableWidget->setItem(ui->testsTableWidget->rowCount()-1, 2, new TableNumericItem(QString::number(aTimeStamp-aStart)));
+
+
+
+    ui->testsTableWidget->scrollToBottom();
+
+    ui->progressBar->setValue(ui->progressBar->value()+1);
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
+    //============================================================
 
     GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
     aMemoryBefore=aMemory.WorkingSetSize;
