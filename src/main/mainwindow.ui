@@ -22,33 +22,7 @@
      <number>4</number>
     </property>
     <item>
-     <widget class="CopyableTable" name="testsTableWidget">
-      <column>
-       <property name="text">
-        <string>N</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Name</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Value (QList)</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Value (OptimalList)</string>
-       </property>
-      </column>
-      <column>
-       <property name="text">
-        <string>Rate</string>
-       </property>
-      </column>
-     </widget>
+     <widget class="QTabWidget" name="testsTabWidget"/>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
@@ -101,13 +75,6 @@
   </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>CopyableTable</class>
-   <extends>QTableWidget</extends>
-   <header>src/widgets/copyabletable.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

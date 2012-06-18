@@ -7,11 +7,32 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->testsTableWidget->setColumnWidth(0, 25);
-    ui->testsTableWidget->setColumnWidth(1, 400);
-    ui->testsTableWidget->setColumnWidth(2, 125);
-    ui->testsTableWidget->setColumnWidth(3, 125);
-    ui->testsTableWidget->setColumnWidth(4, 75);
+    mLastTabIndex=0;
+
+    for (int i=0; i<3; i++)
+    {
+        CopyableTable *aTable=new CopyableTable(this);
+
+        aTable->setColumnCount(5);
+
+        aTable->setHorizontalHeaderItem(0, new QTableWidgetItem("N"));
+        aTable->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
+        aTable->setHorizontalHeaderItem(2, new QTableWidgetItem("Value (QList)"));
+        aTable->setHorizontalHeaderItem(3, new QTableWidgetItem("Value (OptimalList)"));
+        aTable->setHorizontalHeaderItem(4, new QTableWidgetItem("Rate"));
+
+        aTable->setColumnWidth(0, 25);
+        aTable->setColumnWidth(1, 400);
+        aTable->setColumnWidth(2, 125);
+        aTable->setColumnWidth(3, 125);
+        aTable->setColumnWidth(4, 75);
+
+        ui->testsTabWidget->addTab(aTable, "");
+    }
+
+    ui->testsTabWidget->setTabText(0, "Memory usage");
+    ui->testsTabWidget->setTabText(1, "Time for appending");
+    ui->testsTabWidget->setTabText(2, "Time for clearing");
 }
 
 MainWindow::~MainWindow()
@@ -19,57 +40,59 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::setItemAndScroll(int row, int column, QString aText)
+void MainWindow::setItemAndScroll(CopyableTable *aTable, int row, int column, QString aText)
 {
+    ui->testsTabWidget->setCurrentWidget(aTable);
+
     TableNumericItem *aItem=new TableNumericItem(aText);
 
-    ui->testsTableWidget->setItem(row, column, aItem);
-    ui->testsTableWidget->scrollToItem(aItem);
+    aTable->setItem(row, column, aItem);
+    aTable->scrollToItem(aItem);
 
     ui->progressBar->setValue(ui->progressBar->value()+1);
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 
-void MainWindow::calculateRate(int row)
+void MainWindow::calculateRate(CopyableTable *aTable, int row)
 {
-    double aValue1=ui->testsTableWidget->item(row, 2)->text().toDouble();
-    double aValue2=ui->testsTableWidget->item(row, 3)->text().toDouble();
+    double aValue1=aTable->item(row, 2)->text().toDouble();
+    double aValue2=aTable->item(row, 3)->text().toDouble();
 
     if (aValue2==0)
     {
         if (aValue1==0)
         {
-            setItemAndScroll(row, 4, QString::number(1, 'f', 3));
+            setItemAndScroll(aTable, row, 4, QString::number(1, 'f', 3));
         }
         else
         {
-            setItemAndScroll(row, 4, QString::number(aValue1, 'f', 3));
+            setItemAndScroll(aTable, row, 4, QString::number(aValue1, 'f', 3));
         }
     }
     else
     {
-        setItemAndScroll(row, 4, QString::number(aValue1/aValue2, 'f', 3));
+        setItemAndScroll(aTable, row, 4, QString::number(aValue1/aValue2, 'f', 3));
     }
 
-    ui->testsTableWidget->item(row, 3)->setFont(QFont("Arial", 12, QFont::Bold));
-    ui->testsTableWidget->item(row, 4)->setFont(QFont("Arial", 12, QFont::Bold));
+    aTable->item(row, 3)->setFont(QFont("Arial", 12, QFont::Bold));
+    aTable->item(row, 4)->setFont(QFont("Arial", 12, QFont::Bold));
 
     if (aValue2<=aValue1)
     {
-        ui->testsTableWidget->item(row, 3)->setTextColor(QColor(128, 128, 255));
-        ui->testsTableWidget->item(row, 4)->setTextColor(QColor(128, 128, 255));
+        aTable->item(row, 3)->setTextColor(QColor(128, 128, 255));
+        aTable->item(row, 4)->setTextColor(QColor(128, 128, 255));
     }
     else
     {
-        ui->testsTableWidget->item(row, 3)->setTextColor(QColor(255, 128, 128));
-        ui->testsTableWidget->item(row, 4)->setTextColor(QColor(255, 128, 128));
+        aTable->item(row, 3)->setTextColor(QColor(255, 128, 128));
+        aTable->item(row, 4)->setTextColor(QColor(255, 128, 128));
     }
 }
 
-void MainWindow::setAndCalculate(int row, QString aText)
+void MainWindow::setAndCalculate(CopyableTable *aTable, int row, QString aText)
 {
-    setItemAndScroll(row, 3, aText);
-    calculateRate(row);
+    setItemAndScroll(aTable, row, 3, aText);
+    calculateRate(aTable, row);
 }
 
 template <typename T>
@@ -82,7 +105,7 @@ void MainWindow::testList(const QString aElementName)
 //  int aElemCount=30000000; // 1GB RAM free required
     int aElemCount=3000000;
 
-    int lastRow=ui->testsTableWidget->rowCount();
+    int lastRow=((CopyableTable*)ui->testsTabWidget->widget(0))->rowCount();
 
     qint64 aStart;
     qint64 aTimeStamp;
@@ -94,16 +117,15 @@ void MainWindow::testList(const QString aElementName)
 
     //------------------------------------------------------------
 
-    ui->testsTableWidget->setRowCount(lastRow+3);
-
-    for (int i=0; i<3; ++i)
+    for (int i=0; i<ui->testsTabWidget->count(); ++i)
     {
-        ui->testsTableWidget->setItem(lastRow+i, 0, new TableNumericItem(QString::number(lastRow+i+1)));
+        ((CopyableTable*)ui->testsTabWidget->widget(i))->setRowCount(lastRow+1);
+        ((CopyableTable*)ui->testsTabWidget->widget(i))->setItem(lastRow, 0, new TableNumericItem(QString::number(lastRow+1)));
     }
 
-    ui->testsTableWidget->setItem(lastRow,   1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Memory, bytes ("+QString::number(sizeof(T))+" bytes per element)"));
-    ui->testsTableWidget->setItem(lastRow+1, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for appending, ms"));
-    ui->testsTableWidget->setItem(lastRow+2, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for clearing, ms"));
+    ((CopyableTable*)ui->testsTabWidget->widget(0))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Memory, bytes ("+QString::number(sizeof(T))+" bytes per element)"));
+    ((CopyableTable*)ui->testsTabWidget->widget(1))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for appending, ms"));
+    ((CopyableTable*)ui->testsTabWidget->widget(2))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for clearing, ms"));
 
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
@@ -126,8 +148,8 @@ void MainWindow::testList(const QString aElementName)
 
 
 
-    setItemAndScroll(lastRow,   2, QString::number(aMemoryAfter-aMemoryBefore));
-    setItemAndScroll(lastRow+1, 2, QString::number(aTimeStamp-aStart));
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(0)), lastRow, 2, QString::number(aMemoryAfter-aMemoryBefore));
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(1)), lastRow, 2, QString::number(aTimeStamp-aStart));
 
     //------------------------------------------------------------
 
@@ -135,7 +157,7 @@ void MainWindow::testList(const QString aElementName)
     aQtList.clear();
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
-    setItemAndScroll(lastRow+2, 2, QString::number(aTimeStamp-aStart));
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, 2, QString::number(aTimeStamp-aStart));
 
     //============================================================
 
@@ -156,8 +178,8 @@ void MainWindow::testList(const QString aElementName)
 
 
 
-    setAndCalculate(lastRow,   QString::number(aMemoryAfter-aMemoryBefore));
-    setAndCalculate(lastRow+1, QString::number(aTimeStamp-aStart));
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(0)), lastRow, QString::number(aMemoryAfter-aMemoryBefore));
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(1)), lastRow, QString::number(aTimeStamp-aStart));
 
     //------------------------------------------------------------
 
@@ -165,16 +187,23 @@ void MainWindow::testList(const QString aElementName)
     aMyList.clear();
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
-    setAndCalculate(lastRow+2, QString::number(aTimeStamp-aStart));
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, QString::number(aTimeStamp-aStart));
 }
 
 void MainWindow::on_startButton_clicked()
 {
-    ui->testsTableWidget->setSortingEnabled(false);
-    ui->testsTableWidget->clearContents();
-    ui->testsTableWidget->setRowCount(0);
+    ui->testsTabWidget->setCurrentIndex(0);
 
-    ui->progressBar->setMaximum(17*3*3);
+    disconnect(ui->testsTabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_testsTabWidget_currentChanged(int)));
+
+    for (int i=0; i<ui->testsTabWidget->count(); ++i)
+    {
+        ((CopyableTable*)ui->testsTabWidget->widget(i))->setSortingEnabled(false);
+        ((CopyableTable*)ui->testsTabWidget->widget(i))->clearContents();
+        ((CopyableTable*)ui->testsTabWidget->widget(i))->setRowCount(0);
+    }
+
+    ui->progressBar->setMaximum(17*3*ui->testsTabWidget->count());
     ui->progressBar->setValue(0);
 
     testList<bool>("bool");
@@ -195,8 +224,31 @@ void MainWindow::on_startButton_clicked()
     testList<sStruct>("sStruct");
     //testList<QString>("QString");
 
-    ui->testsTableWidget->setSortingEnabled(true);
-    ui->testsTableWidget->sortByColumn(0, Qt::AscendingOrder);
+    for (int i=0; i<ui->testsTabWidget->count(); ++i)
+    {
+        ((CopyableTable*)ui->testsTabWidget->widget(i))->setSortingEnabled(true);
+        ((CopyableTable*)ui->testsTabWidget->widget(i))->sortByColumn(0, Qt::AscendingOrder);
+    }
+
+    ui->testsTabWidget->setCurrentIndex(0);
+    mLastTabIndex=0;
+
+    connect(ui->testsTabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_testsTabWidget_currentChanged(int)));
 
     ui->progressBar->setValue(0);
+}
+
+void MainWindow::on_testsTabWidget_currentChanged(int index)
+{
+    CopyableTable *aTable1=(CopyableTable*)ui->testsTabWidget->widget(mLastTabIndex);
+    CopyableTable *aTable2=(CopyableTable*)ui->testsTabWidget->widget(index);
+
+    for (int i=0; i<aTable1->columnCount(); ++i)
+    {
+        aTable2->setColumnWidth(i, aTable1->columnWidth(i));
+    }
+
+    aTable2->sortByColumn(aTable1->horizontalHeader()->sortIndicatorSection(), aTable1->horizontalHeader()->sortIndicatorOrder());
+
+    mLastTabIndex=index;
 }

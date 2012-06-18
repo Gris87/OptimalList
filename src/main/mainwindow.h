@@ -12,6 +12,7 @@
 #include "src/list/optimallist.h"
 
 #include "src/widgets/tablenumericitem.h"
+#include "src/widgets/copyabletable.h"
 
 namespace Ui {
 class MainWindow;
@@ -34,13 +35,15 @@ public:
 
 private slots:
     void on_startButton_clicked();
+    void on_testsTabWidget_currentChanged(int index);
 
 private:
     Ui::MainWindow *ui;
+    int mLastTabIndex;
 
-    void setItemAndScroll(int row, int column, QString aText);
-    void calculateRate(int row);
-    void setAndCalculate(int row, QString aText);
+    void setItemAndScroll(CopyableTable *aTable, int row, int column, QString aText);
+    void calculateRate(CopyableTable *aTable, int row);
+    void setAndCalculate(CopyableTable *aTable, int row, QString aText);
     template <typename T> void testList(const QString aElementName);
 };
 
