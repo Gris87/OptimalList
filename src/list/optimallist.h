@@ -270,26 +270,6 @@ void OptimalList<T>::setOptimalCapacity()
     int aNewCapacity=mCapacity;
     int aSize=mCount+mBegin;
 
-    if (aSize<aNewCapacity)
-    {
-        do
-        {
-            int aTempCapacity=aNewCapacity >> 1;
-
-            if (aSize>aTempCapacity)
-            {
-                break;
-            }
-
-            aNewCapacity=aTempCapacity;
-
-            if (aNewCapacity==0)
-            {
-                break;
-            }
-        } while (true);
-    }
-    else
     if (aSize>aNewCapacity)
     {
         if (aNewCapacity==0)
@@ -309,6 +289,35 @@ void OptimalList<T>::setOptimalCapacity()
             } while (true);
         }
     }
+    else
+    if (mCount<aNewCapacity)
+    {
+        do
+        {
+            int aTempCapacity=aNewCapacity >> 1;
+
+            if (mCount>aTempCapacity)
+            {
+                break;
+            }
+
+            aNewCapacity=aTempCapacity;
+
+            if (aNewCapacity==0)
+            {
+                break;
+            }
+        } while (true);
+
+        if (mCapacity!=aNewCapacity && mBegin!=0)
+        {
+            int aBegin=mBegin;
+            mBegin=0;
+
+            memmove(pointerAt(0), pointerAt(aBegin), mCount*sizeOfElement);
+        }
+    }
+
 
     if (mCapacity!=aNewCapacity)
     {

@@ -90,6 +90,8 @@ void MainWindow::calculateRate(CopyableTable *aTable, int row)
         aTable->item(row, 3)->setTextColor(QColor(255, 128, 128));
         aTable->item(row, 4)->setTextColor(QColor(255, 128, 128));
     }
+
+    QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 
 void MainWindow::setAndCalculate(CopyableTable *aTable, int row, QString aText)
@@ -105,8 +107,8 @@ void MainWindow::testList(const QString aElementName)
     QList<T> aQtList;
     T aValue;
 
-//  int aElemCount=30000000; // 1GB RAM free required
-    int aElemCount=3000000;
+//  int aElemCount=15000000; // 1GB RAM free required
+    int aElemCount=1500000;
 
     int lastRow=((CopyableTable*)ui->testsTabWidget->widget(0))->rowCount();
 
@@ -268,6 +270,8 @@ void MainWindow::testList(const QString aElementName)
 
 void MainWindow::on_startButton_clicked()
 {
+    ui->startButton->setEnabled(false);
+
     ui->testsTabWidget->setCurrentIndex(0);
 
     disconnect(ui->testsTabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_testsTabWidget_currentChanged(int)));
@@ -312,6 +316,8 @@ void MainWindow::on_startButton_clicked()
     connect(ui->testsTabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_testsTabWidget_currentChanged(int)));
 
     ui->progressBar->setValue(0);
+
+    ui->startButton->setEnabled(true);
 }
 
 void MainWindow::on_testsTabWidget_currentChanged(int index)
