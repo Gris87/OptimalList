@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mLastTabIndex=0;
 
-    for (int i=0; i<3; i++)
+    for (int i=0; i<6; i++)
     {
         CopyableTable *aTable=new CopyableTable(this);
 
@@ -33,6 +33,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->testsTabWidget->setTabText(0, "Memory usage");
     ui->testsTabWidget->setTabText(1, "Time for appending");
     ui->testsTabWidget->setTabText(2, "Time for clearing");
+    ui->testsTabWidget->setTabText(3, "Time for inserting");
+    ui->testsTabWidget->setTabText(4, "Time for cloning");
+    ui->testsTabWidget->setTabText(5, "Time for removing");
 }
 
 MainWindow::~MainWindow()
@@ -126,6 +129,9 @@ void MainWindow::testList(const QString aElementName)
     ((CopyableTable*)ui->testsTabWidget->widget(0))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Memory, bytes ("+QString::number(sizeof(T))+" bytes per element)"));
     ((CopyableTable*)ui->testsTabWidget->widget(1))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for appending, ms"));
     ((CopyableTable*)ui->testsTabWidget->widget(2))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for clearing, ms"));
+    ((CopyableTable*)ui->testsTabWidget->widget(3))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for inserting, ms"));
+    ((CopyableTable*)ui->testsTabWidget->widget(4))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for cloning, ms"));
+    ((CopyableTable*)ui->testsTabWidget->widget(5))->setItem(lastRow, 1, new QTableWidgetItem(QString::number(aElemCount)+" \""+aElementName+"\": Time for removing, ms"));
 
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
@@ -159,6 +165,40 @@ void MainWindow::testList(const QString aElementName)
 
     setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, 2, QString::number(aTimeStamp-aStart));
 
+    //------------------------------------------------------------
+
+    aStart=QDateTime::currentMSecsSinceEpoch();
+
+    for (int i=0; i<aElemCount; ++i)
+    {
+        aQtList.insert(0, aValue);
+    }
+
+    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, 2, QString::number(aTimeStamp-aStart));
+
+    //------------------------------------------------------------
+
+    aStart=QDateTime::currentMSecsSinceEpoch();
+    //useAsArgument<T>(aQtList);
+    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, 2, QString::number(aTimeStamp-aStart));
+
+    //------------------------------------------------------------
+
+    aStart=QDateTime::currentMSecsSinceEpoch();
+
+    while (aQtList.length()>0)
+    {
+        aQtList.removeAt(0);
+    }
+
+    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, 2, QString::number(aTimeStamp-aStart));
+
     //============================================================
 
     GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
@@ -188,6 +228,42 @@ void MainWindow::testList(const QString aElementName)
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
     setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, QString::number(aTimeStamp-aStart));
+
+    //------------------------------------------------------------
+
+    aStart=QDateTime::currentMSecsSinceEpoch();
+
+    for (int i=0; i<aElemCount; ++i)
+    {
+        aMyList.append(aValue);
+    }
+
+    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+
+
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, QString::number(aTimeStamp-aStart));
+
+    //------------------------------------------------------------
+
+    aStart=QDateTime::currentMSecsSinceEpoch();
+    //useAsArgument<T>(aMyList);
+    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, QString::number(aTimeStamp-aStart));
+
+    //------------------------------------------------------------
+
+    aStart=QDateTime::currentMSecsSinceEpoch();
+
+    while (aMyList.length()>0)
+    {
+        aMyList.removeAt(0);
+    }
+
+    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, QString::number(aTimeStamp-aStart));
 }
 
 void MainWindow::on_startButton_clicked()

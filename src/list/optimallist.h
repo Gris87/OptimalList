@@ -13,9 +13,12 @@ public:
 
     void clear();
 
+    void prepend(const T &t);
     void append(const T &t);
     void insert(int i, const T &t);
+
     void removeAt(int i);
+    void removeFirst();
     void removeLast();
 
     const T &at(int i) const;
@@ -29,23 +32,26 @@ public:
 protected:
     enum
     {
-        // Should like this, but we use as below. Maybe it is good
+        // Should be like this, but we use as below. Maybe it is good
 //      isLarge       = QTypeInfo<T>::isLarge        || QTypeInfo<T>::isStatic,
         isLarge       = (sizeof(T)>sizeof(void *)*4),// || QTypeInfo<T>::isStatic,
         sizeOfElement = isLarge ? sizeof(void *) : sizeof(T)
     };
 
     void* mBuffer;
+    int   mBegin;
     int   mCount;
     int   mCapacity;
 
     void setOptimalCapacity();
+    inline void* pointerAt(const int i);
 };
 
 template <typename T>
 OptimalList<T>::OptimalList()
 {
     mBuffer=0;
+    mBegin=0;
     mCount=0;
     mCapacity=0;
 }
@@ -63,12 +69,39 @@ void OptimalList<T>::clear()
     {
         for (int i=0; i<mCount; ++i)
         {
-            delete *reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
+            delete *reinterpret_cast<T**>(pointerAt(i));
         }
     }
 
+    mBegin=0;
     mCount=0;
     setOptimalCapacity();
+}
+
+template <typename T>
+void OptimalList<T>::prepend(const T &t)
+{
+    ++mCount;
+
+    if (mBegin==0)
+    {
+        setOptimalCapacity();
+
+        memmove(pointerAt(1), pointerAt(0), (mCount-1)*sizeOfElement);
+    }
+    else
+    {
+        mBegin--;
+    }
+
+    if (isLarge)
+    {
+        *reinterpret_cast<T**>(pointerAt(0))=new T(t);
+    }
+    else
+    {
+        *reinterpret_cast<T*>(pointerAt(0))=t;
+    }
 }
 
 template <typename T>
@@ -79,31 +112,49 @@ void OptimalList<T>::append(const T &t)
 
     if (isLarge)
     {
-        *reinterpret_cast<T**>((long)mBuffer+(mCount-1)*sizeOfElement)=new T(t);
+        *reinterpret_cast<T**>(pointerAt(mCount-1))=new T(t);
     }
     else
     {
-        *reinterpret_cast<T*>((long)mBuffer+(mCount-1)*sizeOfElement)=t;
+        *reinterpret_cast<T*>(pointerAt(mCount-1))=t;
     }
 }
 
 template <typename T>
 void OptimalList<T>::insert(int i, const T &t)
 {
-    Q_ASSERT_X(i >= 0 && i <= mCount, "OptimalList<T>::insert", "index out of range");
+    if (i<=0)
+    {
+        prepend(t);
+        return;
+    }
+
+    if (i>=mCount)
+    {
+        append(t);
+        return;
+    }
 
     ++mCount;
-    setOptimalCapacity();
 
-    memmove((long)mBuffer+(i+1)*sizeOfElement, (long)mBuffer+i*sizeOfElement, (mCount-i-1)*sizeOfElement);
-
-    if (isLarge)
+    if (mBegin==0 || i>(mCount >> 1))
     {
-        *reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement)=new T(t);
+        setOptimalCapacity();
+        memmove(pointerAt(i+1), pointerAt(i), (mCount-i-1)*sizeOfElement);
     }
     else
     {
-        *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement)=t;
+        --mBegin;
+        memmove(pointerAt(0), pointerAt(1), i*sizeOfElement);
+    }
+
+    if (isLarge)
+    {
+        *reinterpret_cast<T**>(pointerAt(i))=new T(t);
+    }
+    else
+    {
+        *reinterpret_cast<T*>(pointerAt(i))=t;
     }
 }
 
@@ -114,13 +165,31 @@ void OptimalList<T>::removeAt(int i)
 
     if (isLarge)
     {
-        delete *reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
+        delete *reinterpret_cast<T**>(pointerAt(i));
     }
 
-    memmove((long)mBuffer+i*sizeOfElement, (long)mBuffer+(i+1)*sizeOfElement, (mCount-i-1)*sizeOfElement);
+    if (i>mCount >> 1)
+    {
+        memmove(pointerAt(i), pointerAt(i+1), (mCount-i-1)*sizeOfElement);
+    }
+    else
+    {
+        memmove(pointerAt(1), pointerAt(0), i*sizeOfElement);
+
+        mBegin++;
+    }
 
     --mCount;
     setOptimalCapacity();
+}
+
+template <typename T>
+void OptimalList<T>::removeFirst()
+{
+    if (mCount>0)
+    {
+        removeAt(0);
+    }
 }
 
 template <typename T>
@@ -139,11 +208,11 @@ const T &OptimalList<T>::at(int i) const
 
     if (isLarge)
     {
-        return **reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
+        return **reinterpret_cast<T**>(pointerAt(i));
     }
     else
     {
-        return *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement);
+        return *reinterpret_cast<T*>(pointerAt(i));
     }
 }
 
@@ -154,11 +223,11 @@ const T &OptimalList<T>::operator[](int i) const
 
     if (isLarge)
     {
-        return **reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
+        return **reinterpret_cast<T**>(pointerAt(i));
     }
     else
     {
-        return *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement);
+        return *reinterpret_cast<T*>(pointerAt(i));
     }
 }
 
@@ -169,11 +238,11 @@ T &OptimalList<T>::operator[](int i)
 
     if (isLarge)
     {
-        return **reinterpret_cast<T**>((long)mBuffer+i*sizeOfElement);
+        return **reinterpret_cast<T**>(pointerAt(i));
     }
     else
     {
-        return *reinterpret_cast<T*>((long)mBuffer+i*sizeOfElement);
+        return *reinterpret_cast<T*>(pointerAt(i));
     }
 }
 
@@ -199,14 +268,15 @@ template <typename T>
 void OptimalList<T>::setOptimalCapacity()
 {
     int aNewCapacity=mCapacity;
+    int aSize=mCount+mBegin;
 
-    if (mCount<aNewCapacity)
+    if (aSize<aNewCapacity)
     {
         do
         {
             int aTempCapacity=aNewCapacity >> 1;
 
-            if (mCount>aTempCapacity)
+            if (aSize>aTempCapacity)
             {
                 break;
             }
@@ -220,17 +290,17 @@ void OptimalList<T>::setOptimalCapacity()
         } while (true);
     }
     else
-    if (mCount>aNewCapacity)
+    if (aSize>aNewCapacity)
     {
         if (aNewCapacity==0)
         {
-            aNewCapacity=mCount;
+            aNewCapacity=aSize;
         }
         else
         {
             do
             {
-                if (mCount<=aNewCapacity)
+                if (aSize<=aNewCapacity)
                 {
                     break;
                 }
@@ -255,6 +325,12 @@ void OptimalList<T>::setOptimalCapacity()
             Q_CHECK_PTR(mBuffer);
         }
     }
+}
+
+template <typename T>
+void* OptimalList<T>::pointerAt(const int i)
+{
+    return (void*)((long)mBuffer+(mBegin+i)*sizeOfElement);
 }
 
 #endif // OPTIMALLIST_H
