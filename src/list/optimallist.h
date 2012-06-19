@@ -13,13 +13,23 @@ public:
 
     void clear();
 
+    void reserve(int size);
+
     void prepend(const T &t);
     void append(const T &t);
     void insert(int i, const T &t);
 
+    void replace(int i, const T &t);
+
     void removeAt(int i);
     void removeFirst();
     void removeLast();
+    int  removeAll(const T &t);
+    bool removeOne(const T &t);
+
+    T takeAt(int i);
+    T takeFirst();
+    T takeLast();
 
     const T &at(int i) const;
     const T &operator[](int i) const;
@@ -28,6 +38,22 @@ public:
     int length() const;
     int size() const;
     int count() const;
+
+    bool isEmpty() const;
+
+    void move(int from, int to);
+    void swap(int i, int j);
+    void swap(OptimalList<T> &other);
+
+    int indexOf(const T &t, int from = 0) const;
+    int lastIndexOf(const T &t, int from = -1) const;
+    QBool contains(const T &t) const;
+
+    int count(const T &t) const;
+
+    OptimalList<T> &operator=(const OptimalList<T> &l);
+    bool operator==(const OptimalList<T> &l) const;
+    bool operator!=(const OptimalList<T> &l) const;
 
 protected:
     enum
@@ -42,6 +68,7 @@ protected:
     int   mBegin;
     int   mCount;
     int   mCapacity;
+    int   mReserved;
 
     void setOptimalCapacity();
     inline void* pointerAt(const int i);
@@ -54,6 +81,7 @@ OptimalList<T>::OptimalList()
     mBegin=0;
     mCount=0;
     mCapacity=0;
+    mReserved=0;
 }
 
 template <typename T>
@@ -75,7 +103,18 @@ void OptimalList<T>::clear()
 
     mBegin=0;
     mCount=0;
+    mReserved=0;
     setOptimalCapacity();
+}
+
+template <typename T>
+void OptimalList<T>::reserve(int size)
+{
+    if (mReserved!=size)
+    {
+        mReserved=size;
+        setOptimalCapacity();
+    }
 }
 
 template <typename T>
@@ -158,6 +197,22 @@ void OptimalList<T>::insert(int i, const T &t)
     }
 }
 
+
+template <typename T>
+void OptimalList<T>::replace(int i, const T &t)
+{
+    Q_ASSERT_X(i >= 0 && i < mCount, "OptimalList<T>::replace", "index out of range");
+
+    if (isLarge)
+    {
+        **reinterpret_cast<T**>(pointerAt(i))=t;
+    }
+    else
+    {
+        *reinterpret_cast<T*>(pointerAt(i))=t;
+    }
+}
+
 template <typename T>
 void OptimalList<T>::removeAt(int i)
 {
@@ -199,6 +254,36 @@ void OptimalList<T>::removeLast()
     {
         removeAt(mCount-1);
     }
+}
+
+template <typename T>
+int OptimalList<T>::removeAll(const T &t)
+{
+
+}
+
+template <typename T>
+bool OptimalList<T>::removeOne(const T &t)
+{
+
+}
+
+template <typename T>
+T OptimalList<T>::takeAt(int i)
+{
+
+}
+
+template <typename T>
+T OptimalList<T>::takeFirst()
+{
+
+}
+
+template <typename T>
+T OptimalList<T>::takeLast()
+{
+
 }
 
 template <typename T>
@@ -265,6 +350,123 @@ int OptimalList<T>::count() const
 }
 
 template <typename T>
+bool OptimalList<T>::isEmpty() const
+{
+    return mCount==0;
+}
+
+template <typename T>
+void OptimalList<T>::move(int from, int to)
+{
+
+}
+
+template <typename T>
+void OptimalList<T>::swap(int i, int j)
+{
+
+}
+
+template <typename T>
+void OptimalList<T>::swap(OptimalList<T> &other)
+{
+
+}
+
+template <typename T>
+int OptimalList<T>::indexOf(const T &t, int from) const
+{
+
+}
+template <typename T>
+int OptimalList<T>::lastIndexOf(const T &t, int from) const
+{
+
+}
+
+template <typename T>
+QBool OptimalList<T>::contains(const T &t) const
+{
+
+}
+
+template <typename T>
+int OptimalList<T>::count(const T &t) const
+{
+
+}
+
+template <typename T>
+OptimalList<T> &OptimalList<T>::operator=(const OptimalList<T> &l)
+{
+    clear();
+
+    mCount=l.mCount;
+    mCapacity=l.mCount;
+    mBuffer = malloc(mCapacity*sizeOfElement);
+
+    if (isLarge)
+    {
+        for (int i=0; i<mCount; ++i)
+        {
+            *reinterpret_cast<T**>(pointerAt(i))=new T(**reinterpret_cast<T**>(l.pointerAt(i)));
+        }
+    }
+    else
+    {
+        for (int i=0; i<mCount; ++i)
+        {
+            *reinterpret_cast<T*>(pointerAt(i))=*reinterpret_cast<T*>(l.pointerAt(i));
+        }
+    }
+
+    return *this;
+}
+
+template <typename T>
+bool OptimalList<T>::operator==(const OptimalList<T> &l) const
+{
+    if (mCount != l.mCount)
+    {
+        return false;
+    }
+
+    if (mBuffer == l.mBuffer)
+    {
+        return true;
+    }
+
+    if (isLarge)
+    {
+        for (int i=0; i<mCount; ++i)
+        {
+            if (**reinterpret_cast<T**>(pointerAt(i)) != **reinterpret_cast<T**>(l.pointerAt(i)))
+            {
+                return false;
+            }
+        }
+    }
+    else
+    {
+        for (int i=0; i<mCount; ++i)
+        {
+            if (*reinterpret_cast<T*>(pointerAt(i)) != *reinterpret_cast<T*>(l.pointerAt(i)))
+            {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+template <typename T>
+bool OptimalList<T>::operator!=(const OptimalList<T> &l) const
+{
+    return !(*this == l);
+}
+
+template <typename T>
 void OptimalList<T>::setOptimalCapacity()
 {
     int aNewCapacity=mCapacity;
@@ -278,6 +480,11 @@ void OptimalList<T>::setOptimalCapacity()
         }
         else
         {
+            if (aNewCapacity<mReserved)
+            {
+                aNewCapacity=mReserved;
+            }
+
             do
             {
                 if (aSize<=aNewCapacity)
@@ -296,7 +503,7 @@ void OptimalList<T>::setOptimalCapacity()
         {
             int aTempCapacity=aNewCapacity >> 1;
 
-            if (mCount>aTempCapacity)
+            if (mCount>aTempCapacity || mReserved>aTempCapacity)
             {
                 break;
             }
@@ -317,7 +524,6 @@ void OptimalList<T>::setOptimalCapacity()
             memmove(pointerAt(0), pointerAt(aBegin), mCount*sizeOfElement);
         }
     }
-
 
     if (mCapacity!=aNewCapacity)
     {

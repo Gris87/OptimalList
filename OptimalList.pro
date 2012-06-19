@@ -20,6 +20,7 @@ SOURCES += src/main.cpp\
            src/widgets/tablenumericitem.cpp
 
 HEADERS  += src/main/mainwindow.h \
+            src/main/types.h \
             src/list/optimallist.h \
             src/widgets/copyabletable.h \
             src/widgets/tablenumericitem.h

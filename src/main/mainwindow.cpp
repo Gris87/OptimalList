@@ -283,7 +283,7 @@ void MainWindow::on_startButton_clicked()
         ((CopyableTable*)ui->testsTabWidget->widget(i))->setRowCount(0);
     }
 
-    ui->progressBar->setMaximum(17*3*ui->testsTabWidget->count());
+    ui->progressBar->setMaximum(21*3*ui->testsTabWidget->count());
     ui->progressBar->setValue(0);
 
     testList<bool>("bool");
@@ -301,7 +301,11 @@ void MainWindow::on_startButton_clicked()
     testList<float>("float");
     testList<double>("double");
     testList<long double>("long double");
-    testList<sStruct>("sStruct");
+    testList<sTinyStruct>("sTinyStruct");
+    testList<sSmallStruct>("sSmallStruct");
+    testList<sMediumStruct>("sMediumStruct");
+    testList<sLargeStruct>("sLargeStruct");
+    testList<sHugeStruct>("sHugeStruct");
     //testList<QString>("QString");
 
     for (int i=0; i<ui->testsTabWidget->count(); ++i)

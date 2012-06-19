@@ -14,16 +14,11 @@
 #include "src/widgets/tablenumericitem.h"
 #include "src/widgets/copyabletable.h"
 
+#include "types.h"
+
 namespace Ui {
 class MainWindow;
 }
-
-struct sStruct
-{
-    int a;
-    long b;
-    double c;
-};
 
 class MainWindow : public QMainWindow
 {
