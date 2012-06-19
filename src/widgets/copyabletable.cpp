@@ -57,7 +57,7 @@ void CopyableTable::keyPressEvent(QKeyEvent *event)
     }
 }
 
-void CopyableTable::commitData(QWidget *editor)
+void CopyableTable::commitData(QWidget *)
 {
     // Nothing
 }

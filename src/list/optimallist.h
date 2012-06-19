@@ -10,6 +10,7 @@ class OptimalList
 {
 public:
     OptimalList();
+    OptimalList(OptimalList<T> &list);
     ~OptimalList();
 
     void clear();
@@ -63,7 +64,7 @@ public:
 
     OptimalList<T> mid(int pos, int length = -1) const;
 
-    OptimalList<T> &operator=(const OptimalList<T> &l);
+    OptimalList<T> &operator=(OptimalList<T> &l);
     bool operator==(const OptimalList<T> &l) const;
     bool operator!=(const OptimalList<T> &l) const;
 
@@ -94,6 +95,18 @@ OptimalList<T>::OptimalList()
     mCount=0;
     mCapacity=0;
     mReserved=0;
+}
+
+template <typename T>
+OptimalList<T>::OptimalList(OptimalList<T> &list)
+{
+    mBuffer=0;
+    mBegin=0;
+    mCount=0;
+    mCapacity=0;
+    mReserved=0;
+
+    *this=list;
 }
 
 template <typename T>
@@ -669,7 +682,7 @@ OptimalList<T> OptimalList<T>::mid(int pos, int length) const
 }
 
 template <typename T>
-OptimalList<T> &OptimalList<T>::operator=(const OptimalList<T> &l)
+OptimalList<T> &OptimalList<T>::operator=(OptimalList<T> &l)
 {
     clear();
 

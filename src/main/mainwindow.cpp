@@ -183,8 +183,10 @@ void MainWindow::testList(const QString aElementName)
     //------------------------------------------------------------
 
     aStart=QDateTime::currentMSecsSinceEpoch();
-    //useAsArgument<T>(aQtList);
+    QList<T> aTempList=aQtList;
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    aTempList.clear();
 
     setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, 2, QString::number(aTimeStamp-aStart));
 
@@ -237,7 +239,7 @@ void MainWindow::testList(const QString aElementName)
 
     for (int i=0; i<aElemCount; ++i)
     {
-        aMyList.append(aValue);
+        aMyList.insert(0, aValue);
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
@@ -249,8 +251,10 @@ void MainWindow::testList(const QString aElementName)
     //------------------------------------------------------------
 
     aStart=QDateTime::currentMSecsSinceEpoch();
-    //useAsArgument<T>(aMyList);
+    OptimalList<T> aTempList2=aMyList;
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+    aTempList2.clear();
 
     setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, QString::number(aTimeStamp-aStart));
 

@@ -14,7 +14,7 @@ public:
 
 protected:
     void keyPressEvent(QKeyEvent *event);
-    void commitData(QWidget *editor);
+    void commitData(QWidget *);
 };
 
 #endif // COPYABLETABLE_H
