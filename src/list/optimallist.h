@@ -34,6 +34,10 @@ public:
     const T &at(int i) const;
     const T &operator[](int i) const;
     T &operator[](int i);
+    T& first();
+    const T& first() const;
+    T& last();
+    const T& last() const;
 
     int length() const;
     int size() const;
@@ -197,7 +201,6 @@ void OptimalList<T>::insert(int i, const T &t)
     }
 }
 
-
 template <typename T>
 void OptimalList<T>::replace(int i, const T &t)
 {
@@ -259,31 +262,64 @@ void OptimalList<T>::removeLast()
 template <typename T>
 int OptimalList<T>::removeAll(const T &t)
 {
+    int removed=0;
 
+    int i=0;
+
+    while (i<mCount)
+    {
+        if (at(i)==t)
+        {
+            removeAt(i);
+            ++removed;
+        }
+        else
+        {
+            ++i;
+        }
+    }
+
+    return removed;
 }
 
 template <typename T>
 bool OptimalList<T>::removeOne(const T &t)
 {
+    int index=indexOf(t);
 
+    if (index>=0)
+    {
+        removeAt(index);
+        return true;
+    }
+
+    return false;
 }
 
 template <typename T>
 T OptimalList<T>::takeAt(int i)
 {
+    Q_ASSERT_X(i >= 0 && i < mCount, "OptimalList<T>::takeAt", "index out of range");
 
+    T t=at(i);
+    removeAt(i);
+    return t;
 }
 
 template <typename T>
 T OptimalList<T>::takeFirst()
 {
-
+    T t=first();
+    removeFirst();
+    return t;
 }
 
 template <typename T>
 T OptimalList<T>::takeLast()
 {
-
+    T t=last();
+    removeLast();
+    return t;
 }
 
 template <typename T>
@@ -332,6 +368,64 @@ T &OptimalList<T>::operator[](int i)
 }
 
 template <typename T>
+T& OptimalList<T>::first()
+{
+    Q_ASSERT(!isEmpty());
+
+    if (isLarge)
+    {
+        return **reinterpret_cast<T**>(pointerAt(0));
+    }
+    else
+    {
+        return *reinterpret_cast<T*>(pointerAt(0));
+    }
+}
+
+template <typename T>
+const T& OptimalList<T>::first() const
+{
+    Q_ASSERT(!isEmpty());
+
+    if (isLarge)
+    {
+        return **reinterpret_cast<T**>(pointerAt(0));
+    }
+    else
+    {
+        return *reinterpret_cast<T*>(pointerAt(0));
+    }
+}
+
+template <typename T>
+T& OptimalList<T>::last()
+{
+    Q_ASSERT(!isEmpty());
+
+    if (isLarge)
+    {
+        return **reinterpret_cast<T**>(pointerAt(mCount-1));
+    }
+    else
+    {
+        return *reinterpret_cast<T*>(pointerAt(mCount-1));
+    }
+}
+
+template <typename T>
+const T& OptimalList<T>::last() const
+{
+    if (isLarge)
+    {
+        return **reinterpret_cast<T**>(pointerAt(mCount-1));
+    }
+    else
+    {
+        return *reinterpret_cast<T*>(pointerAt(mCount-1));
+    }
+}
+
+template <typename T>
 int OptimalList<T>::length() const
 {
     return mCount;
@@ -358,6 +452,13 @@ bool OptimalList<T>::isEmpty() const
 template <typename T>
 void OptimalList<T>::move(int from, int to)
 {
+    Q_ASSERT_X(from >= 0 && from < mCount && to >= 0 && to < mCount, "OptimalList<T>::move", "index out of range");
+
+    if (from == to)
+    {
+        return;
+    }
+
 
 }
 
@@ -370,30 +471,81 @@ void OptimalList<T>::swap(int i, int j)
 template <typename T>
 void OptimalList<T>::swap(OptimalList<T> &other)
 {
-
+    qSwap(mBuffer,   other.mBuffer);
+    qSwap(mBegin,    other.mBegin);
+    qSwap(mCount,    other.mCount);
+    qSwap(mCapacity, other.mCapacity);
+    qSwap(mReserved, other.mReserved);
 }
 
 template <typename T>
 int OptimalList<T>::indexOf(const T &t, int from) const
 {
+    if (from<0)
+    {
+        from+=mCount;
 
+        if (from<0)
+        {
+            from=0;
+        }
+    }
+
+    for (int i=from; i<mCount; ++i)
+    {
+        if (at(i)==t)
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }
+
 template <typename T>
 int OptimalList<T>::lastIndexOf(const T &t, int from) const
 {
+    if (from<0)
+    {
+        from+=mCount;
+    }
+    else
+    if (from>=mCount)
+    {
+        from=mCount-1;
+    }
 
+    for (int i=from; i>=0; --i)
+    {
+        if (at(i)==t)
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 template <typename T>
 QBool OptimalList<T>::contains(const T &t) const
 {
-
+    return indexOf(t)>=0;
 }
 
 template <typename T>
 int OptimalList<T>::count(const T &t) const
 {
+    int res=0;
 
+    for (int i=0; i<mCount; ++i)
+    {
+        if (at(i)==t)
+        {
+            ++res;
+        }
+    }
+
+    return res;
 }
 
 template <typename T>
@@ -402,8 +554,7 @@ OptimalList<T> &OptimalList<T>::operator=(const OptimalList<T> &l)
     clear();
 
     mCount=l.mCount;
-    mCapacity=l.mCount;
-    mBuffer = malloc(mCapacity*sizeOfElement);
+    setOptimalCapacity();
 
     if (isLarge)
     {
@@ -436,24 +587,11 @@ bool OptimalList<T>::operator==(const OptimalList<T> &l) const
         return true;
     }
 
-    if (isLarge)
+    for (int i=0; i<mCount; ++i)
     {
-        for (int i=0; i<mCount; ++i)
+        if (at(i)!=l.at(i))
         {
-            if (**reinterpret_cast<T**>(pointerAt(i)) != **reinterpret_cast<T**>(l.pointerAt(i)))
-            {
-                return false;
-            }
-        }
-    }
-    else
-    {
-        for (int i=0; i<mCount; ++i)
-        {
-            if (*reinterpret_cast<T*>(pointerAt(i)) != *reinterpret_cast<T*>(l.pointerAt(i)))
-            {
-                return false;
-            }
+            return false;
         }
     }
 
@@ -480,19 +618,14 @@ void OptimalList<T>::setOptimalCapacity()
         }
         else
         {
-            if (aNewCapacity<mReserved)
-            {
-                aNewCapacity=mReserved;
-            }
-
             do
             {
+                aNewCapacity = aNewCapacity << 1;
+
                 if (aSize<=aNewCapacity)
                 {
                     break;
                 }
-
-                aNewCapacity = aNewCapacity << 1;
             } while (true);
         }
     }
@@ -503,7 +636,7 @@ void OptimalList<T>::setOptimalCapacity()
         {
             int aTempCapacity=aNewCapacity >> 1;
 
-            if (mCount>aTempCapacity || mReserved>aTempCapacity)
+            if (mCount>aTempCapacity)
             {
                 break;
             }
@@ -523,6 +656,11 @@ void OptimalList<T>::setOptimalCapacity()
 
             memmove(pointerAt(0), pointerAt(aBegin), mCount*sizeOfElement);
         }
+    }
+
+    if (aNewCapacity<mReserved)
+    {
+        aNewCapacity=mReserved;
     }
 
     if (mCapacity!=aNewCapacity)
