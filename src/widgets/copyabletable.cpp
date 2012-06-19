@@ -20,9 +20,9 @@ void CopyableTable::keyPressEvent(QKeyEvent *event)
 
             QString toClipBoard="";
 
-            for (int i=aTop; i<=aBottom; i++)
+            for (int i=aTop; i<=aBottom; ++i)
             {
-                for (int j=aLeft; j<=aRight; j++)
+                for (int j=aLeft; j<=aRight; ++j)
                 {
                     if (!isColumnHidden(j))
                     {

@@ -9,7 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mLastTabIndex=0;
 
-    for (int i=0; i<6; i++)
+    for (int i=0; i<6; ++i)
     {
         CopyableTable *aTable=new CopyableTable(this);
 
@@ -137,7 +137,9 @@ void MainWindow::testList(const QString aElementName)
 
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
-    //------------------------------------------------------------
+    //============================================================
+    //                           QT LIST
+    //============================================================
 
     GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
     aMemoryBefore=aMemory.WorkingSetSize;
@@ -203,6 +205,8 @@ void MainWindow::testList(const QString aElementName)
 
     setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, 2, QString::number(aTimeStamp-aStart));
 
+    //============================================================
+    //                        OPTIMAL LIST
     //============================================================
 
     GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));

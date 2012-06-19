@@ -149,14 +149,23 @@ void OptimalList<T>::prepend(const T &t)
 
     if (mBegin==0)
     {
-        setOptimalCapacity();
+        if (mCount>=(mCapacity << 1)/3)
+        {
+            mBegin=mCapacity-mCount+1; // +1 - to increase capacity at the next step
+            setOptimalCapacity();
+        }
 
-        memmove(pointerAt(1), pointerAt(0), (mCount-1)*sizeOfElement);
+        mBegin=(mCapacity-mCount) >> 1;
+
+        if (mBegin==0)
+        {
+            mBegin=1;
+        }
+
+        memmove(pointerAt(0), mBuffer, (mCount-1)*sizeOfElement);
     }
-    else
-    {
-        mBegin--;
-    }
+
+    --mBegin;
 
     if (isLarge)
     {
@@ -277,7 +286,7 @@ void OptimalList<T>::removeAt(int i)
     {
         memmove(pointerAt(1), pointerAt(0), i*sizeOfElement);
 
-        mBegin++;
+        ++mBegin;
     }
 
     --mCount;
