@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QByteArray>
+#include <QList>
 
 template <typename T>
 class OptimalList
@@ -17,6 +18,7 @@ public:
 
     void prepend(const T &t);
     void append(const T &t);
+    void append(const OptimalList<T> &t);
     void insert(int i, const T &t);
 
     void replace(int i, const T &t);
@@ -34,6 +36,8 @@ public:
     const T &at(int i) const;
     const T &operator[](int i) const;
     T &operator[](int i);
+    T value(int i) const;
+    T value(int i, const T &defaultValue) const;
     T& first();
     const T& first() const;
     T& last();
@@ -52,8 +56,12 @@ public:
     int indexOf(const T &t, int from = 0) const;
     int lastIndexOf(const T &t, int from = -1) const;
     QBool contains(const T &t) const;
+    bool startsWith(const T &t) const;
+    bool endsWith(const T &t) const;
 
     int count(const T &t) const;
+
+    OptimalList<T> mid(int pos, int length = -1) const;
 
     OptimalList<T> &operator=(const OptimalList<T> &l);
     bool operator==(const OptimalList<T> &l) const;
@@ -160,6 +168,28 @@ void OptimalList<T>::append(const T &t)
     else
     {
         *reinterpret_cast<T*>(pointerAt(mCount-1))=t;
+    }
+}
+
+template <typename T>
+void OptimalList<T>::append(const OptimalList<T> &t)
+{
+    if (t.mCount>0)
+    {
+        mCount+=t.mCount;
+        setOptimalCapacity();
+
+        for (int i=0; i<t.mCount; ++i)
+        {
+            if (isLarge)
+            {
+                *reinterpret_cast<T**>(pointerAt(mCount+i-t.mCount))=new T(**reinterpret_cast<T**>(t.pointerAt(i)));
+            }
+            else
+            {
+                *reinterpret_cast<T*>(pointerAt(mCount+i-t.mCount))=*reinterpret_cast<T*>(t.pointerAt(i));
+            }
+        }
     }
 }
 
@@ -368,6 +398,32 @@ T &OptimalList<T>::operator[](int i)
 }
 
 template <typename T>
+T OptimalList<T>::value(int i) const
+{
+    if (i>=0 && i<mCount)
+    {
+        return at(i);
+    }
+    else
+    {
+        return T();
+    }
+}
+
+template <typename T>
+T OptimalList<T>::value(int i, const T &defaultValue) const
+{
+    if (i>=0 && i<mCount)
+    {
+        return at(i);
+    }
+    else
+    {
+        return defaultValue;
+    }
+}
+
+template <typename T>
 T& OptimalList<T>::first()
 {
     Q_ASSERT(!isEmpty());
@@ -465,7 +521,20 @@ void OptimalList<T>::move(int from, int to)
 template <typename T>
 void OptimalList<T>::swap(int i, int j)
 {
+    Q_ASSERT_X(i >= 0 && i < mCount && j >= 0 && j < mCount, "OptimalList<T>::swap", "index out of range");
 
+    if (isLarge)
+    {
+        T *t = *reinterpret_cast<T**>(pointerAt(i));
+        *reinterpret_cast<T**>(pointerAt(i)) = *reinterpret_cast<T**>(pointerAt(j));
+        *reinterpret_cast<T**>(pointerAt(j)) = t;
+    }
+    else
+    {
+        T t=*reinterpret_cast<T*>(pointerAt(i));
+        *reinterpret_cast<T*>(pointerAt(i)) = *reinterpret_cast<T*>(pointerAt(j));
+        *reinterpret_cast<T*>(pointerAt(j)) = t;
+    }
 }
 
 template <typename T>
@@ -533,6 +602,18 @@ QBool OptimalList<T>::contains(const T &t) const
 }
 
 template <typename T>
+bool OptimalList<T>::startsWith(const T &t) const
+{
+    return mCount>0 && at(0)==t;
+}
+
+template <typename T>
+bool OptimalList<T>::endsWith(const T &t) const
+{
+    return mCount>0 && at(mCount-1)==t;
+}
+
+template <typename T>
 int OptimalList<T>::count(const T &t) const
 {
     int res=0;
@@ -546,6 +627,45 @@ int OptimalList<T>::count(const T &t) const
     }
 
     return res;
+}
+
+template <typename T>
+OptimalList<T> OptimalList<T>::mid(int pos, int length) const
+{
+    if (length<0 || pos+length>mCount)
+    {
+        length=mCount-pos;
+    }
+
+    if (pos==0 && length==mCount)
+    {
+        return *this;
+    }
+
+    OptimalList list;
+
+    list.mCount=length;
+    list.setOptimalCapacity();
+
+    if (isLarge)
+    {
+        if (isLarge)
+        {
+            for (int i=0; i<length; ++i)
+            {
+                *reinterpret_cast<T**>(list.pointerAt(i))=new T(**reinterpret_cast<T**>(pointerAt(pos+i)));
+            }
+        }
+        else
+        {
+            for (int i=0; i<length; ++i)
+            {
+                *reinterpret_cast<T*>(list.pointerAt(i))=*reinterpret_cast<T*>(pointerAt(pos+i));
+            }
+        }
+    }
+
+    return list;
 }
 
 template <typename T>
