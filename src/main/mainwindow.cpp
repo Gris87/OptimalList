@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->testsTabWidget->setTabText(3, "Time for inserting");
     ui->testsTabWidget->setTabText(4, "Time for cloning");
     ui->testsTabWidget->setTabText(5, "Time for removing");
+
+    mRandomSeed=QDateTime::currentMSecsSinceEpoch();
 }
 
 MainWindow::~MainWindow()
@@ -171,11 +173,13 @@ void MainWindow::testList(const QString aElementName)
 
     //------------------------------------------------------------
 
+    srand(mRandomSeed);
+
     aStart=QDateTime::currentMSecsSinceEpoch();
 
     for (int i=0; i<aElemCount; ++i)
     {
-        aQtList.insert(0, aValue);
+        aQtList.insert(rand() % (aQtList.length()+1), aValue);
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
@@ -186,6 +190,7 @@ void MainWindow::testList(const QString aElementName)
 
     aStart=QDateTime::currentMSecsSinceEpoch();
     QList<T> aTempList=aQtList;
+    aTempList.detach();
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
     aTempList.clear();
@@ -194,11 +199,13 @@ void MainWindow::testList(const QString aElementName)
 
     //------------------------------------------------------------
 
+    srand(mRandomSeed);
+
     aStart=QDateTime::currentMSecsSinceEpoch();
 
     while (aQtList.length()>0)
     {
-        aQtList.removeAt(0);
+        aQtList.removeAt(rand() % aQtList.length());
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
@@ -239,11 +246,13 @@ void MainWindow::testList(const QString aElementName)
 
     //------------------------------------------------------------
 
+    srand(mRandomSeed);
+
     aStart=QDateTime::currentMSecsSinceEpoch();
 
     for (int i=0; i<aElemCount; ++i)
     {
-        aMyList.insert(0, aValue);
+        aMyList.insert(rand() % (aMyList.length()+1), aValue);
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
@@ -264,11 +273,13 @@ void MainWindow::testList(const QString aElementName)
 
     //------------------------------------------------------------
 
+    srand(mRandomSeed);
+
     aStart=QDateTime::currentMSecsSinceEpoch();
 
     while (aMyList.length()>0)
     {
-        aMyList.removeAt(0);
+        aMyList.removeAt(rand() % aMyList.length());
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
@@ -295,6 +306,7 @@ void MainWindow::on_startButton_clicked()
     ui->progressBar->setValue(0);
 
     testList<bool>("bool");
+    /*
     testList<char>("char");
     testList<signed char>("signed char");
     testList<uchar>("uchar");
@@ -314,6 +326,7 @@ void MainWindow::on_startButton_clicked()
     testList<sMediumStruct>("sMediumStruct");
     testList<sLargeStruct>("sLargeStruct");
     testList<sHugeStruct>("sHugeStruct");
+    */
     //testList<QString>("QString");
 
     for (int i=0; i<ui->testsTabWidget->count(); ++i)

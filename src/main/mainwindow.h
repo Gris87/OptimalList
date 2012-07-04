@@ -35,6 +35,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     int mLastTabIndex;
+    qint64 mRandomSeed;
 
     void setItemAndScroll(CopyableTable *aTable, int row, int column, QString aText);
     void calculateRate(CopyableTable *aTable, int row);
