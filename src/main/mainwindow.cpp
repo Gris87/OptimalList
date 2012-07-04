@@ -110,7 +110,7 @@ void MainWindow::testList(const QString aElementName)
     T aValue;
 
 //  int aElemCount=15000000; // 1GB RAM free required
-    int aElemCount=1500000;
+    int aElemCount=150000;
 
     int lastRow=((CopyableTable*)ui->testsTabWidget->widget(0))->rowCount();
 
@@ -306,7 +306,6 @@ void MainWindow::on_startButton_clicked()
     ui->progressBar->setValue(0);
 
     testList<bool>("bool");
-    /*
     testList<char>("char");
     testList<signed char>("signed char");
     testList<uchar>("uchar");
@@ -326,7 +325,6 @@ void MainWindow::on_startButton_clicked()
     testList<sMediumStruct>("sMediumStruct");
     testList<sLargeStruct>("sLargeStruct");
     testList<sHugeStruct>("sHugeStruct");
-    */
     //testList<QString>("QString");
 
     for (int i=0; i<ui->testsTabWidget->count(); ++i)

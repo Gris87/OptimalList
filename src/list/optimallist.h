@@ -235,7 +235,26 @@ void OptimalList<T>::insert(int i, const T &t)
     if (mBegin==0 || i>(mCount >> 1))
     {
         setOptimalCapacity();
-        memmove(pointerAt(i+1), pointerAt(i), (mCount-i-1)*sizeOfElement);
+
+        if (i>(mCount >> 1))
+        {
+            memmove(pointerAt(i+1), pointerAt(i), (mCount-i-1)*sizeOfElement);
+        }
+        else
+        {
+            // mBegin was 0
+            mBegin=(mCapacity-mCount) >> 1;
+
+            if (mBegin==0)
+            {
+                mBegin=1;
+            }
+
+            memmove(pointerAt(0), mBuffer, (mCount-1)*sizeOfElement);
+
+            --mBegin;
+            memmove(pointerAt(0), pointerAt(1), i*sizeOfElement);
+        }
     }
     else
     {
