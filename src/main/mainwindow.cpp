@@ -110,7 +110,7 @@ void MainWindow::testList(const QString aElementName)
     T aValue;
 
 //  int aElemCount=15000000; // 1GB RAM free required
-    int aElemCount=150000;
+    int aElemCount=15000;
 
     int lastRow=((CopyableTable*)ui->testsTabWidget->widget(0))->rowCount();
 
@@ -177,14 +177,14 @@ void MainWindow::testList(const QString aElementName)
 
     aStart=QDateTime::currentMSecsSinceEpoch();
 
-    for (int i=0; i<aElemCount; ++i)
+    for (int i=0; i<aElemCount/100; ++i)
     {
         aQtList.insert(rand() % (aQtList.length()+1), aValue);
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, 2, QString::number(aTimeStamp-aStart));
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, 2, QString::number((aTimeStamp-aStart)*100));
 
     //------------------------------------------------------------
 
@@ -210,7 +210,7 @@ void MainWindow::testList(const QString aElementName)
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, 2, QString::number(aTimeStamp-aStart));
+    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, 2, QString::number((aTimeStamp-aStart)*100));
 
     //============================================================
     //                        OPTIMAL LIST
@@ -250,7 +250,7 @@ void MainWindow::testList(const QString aElementName)
 
     aStart=QDateTime::currentMSecsSinceEpoch();
 
-    for (int i=0; i<aElemCount; ++i)
+    for (int i=0; i<aElemCount/100; ++i)
     {
         aMyList.insert(rand() % (aMyList.length()+1), aValue);
     }
@@ -259,7 +259,7 @@ void MainWindow::testList(const QString aElementName)
 
 
 
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, QString::number(aTimeStamp-aStart));
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, QString::number((aTimeStamp-aStart)*100));
 
     //------------------------------------------------------------
 
@@ -284,7 +284,7 @@ void MainWindow::testList(const QString aElementName)
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, QString::number(aTimeStamp-aStart));
+    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, QString::number((aTimeStamp-aStart)*100));
 }
 
 void MainWindow::on_startButton_clicked()
@@ -305,6 +305,7 @@ void MainWindow::on_startButton_clicked()
     ui->progressBar->setMaximum(21*3*ui->testsTabWidget->count());
     ui->progressBar->setValue(0);
 
+    /*
     testList<bool>("bool");
     testList<char>("char");
     testList<signed char>("signed char");
@@ -325,7 +326,8 @@ void MainWindow::on_startButton_clicked()
     testList<sMediumStruct>("sMediumStruct");
     testList<sLargeStruct>("sLargeStruct");
     testList<sHugeStruct>("sHugeStruct");
-    //testList<QString>("QString");
+    */
+    testList<QString>("QString");
 
     for (int i=0; i<ui->testsTabWidget->count(); ++i)
     {

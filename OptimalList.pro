@@ -14,10 +14,11 @@ RESOURCES += Resources.qrc
 
 LIBS += -lpsapi
 
-SOURCES += src/main.cpp\
-           src/main/mainwindow.cpp \
-           src/widgets/copyabletable.cpp \
-           src/widgets/tablenumericitem.cpp
+SOURCES +=  src/main.cpp\
+            src/main/mainwindow.cpp \
+            src/list/optimallist.cpp \
+            src/widgets/copyabletable.cpp \
+            src/widgets/tablenumericitem.cpp
 
 HEADERS  += src/main/mainwindow.h \
             src/main/types.h \

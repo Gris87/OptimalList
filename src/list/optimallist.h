@@ -5,6 +5,19 @@
 #include <QByteArray>
 #include <QList>
 
+class OptimalListSharedData
+{
+public:
+    OptimalListSharedData();
+
+    void* mBuffer;
+    int   mBegin;
+    int   mCount;
+    int   mCapacity;
+    int   mReserved;
+    int   mReferences;
+};
+
 template <typename T>
 class OptimalList
 {
@@ -172,6 +185,11 @@ void OptimalList<T>::prepend(const T &t)
         *reinterpret_cast<T**>(pointerAt(0))=new T(t);
     }
     else
+    if (QTypeInfo<T>::isComplex)
+    {
+        new (pointerAt(0)) T(t);
+    }
+    else
     {
         *reinterpret_cast<T*>(pointerAt(0))=t;
     }
@@ -186,6 +204,11 @@ void OptimalList<T>::append(const T &t)
     if (isLarge)
     {
         *reinterpret_cast<T**>(pointerAt(mCount-1))=new T(t);
+    }
+    else
+    if (QTypeInfo<T>::isComplex)
+    {
+        new (pointerAt(mCount-1)) T(t);
     }
     else
     {
@@ -206,6 +229,11 @@ void OptimalList<T>::append(const OptimalList<T> &t)
             if (isLarge)
             {
                 *reinterpret_cast<T**>(pointerAt(mCount+i-t.mCount))=new T(**reinterpret_cast<T**>(t.pointerAt(i)));
+            }
+            else
+            if (QTypeInfo<T>::isComplex)
+            {
+                new (pointerAt(mCount+i-t.mCount)) T(*reinterpret_cast<T*>(t.pointerAt(i)));
             }
             else
             {
@@ -265,6 +293,11 @@ void OptimalList<T>::insert(int i, const T &t)
     if (isLarge)
     {
         *reinterpret_cast<T**>(pointerAt(i))=new T(t);
+    }
+    else
+    if (QTypeInfo<T>::isComplex)
+    {
+        new (pointerAt(i)) T(t);
     }
     else
     {
@@ -722,6 +755,14 @@ OptimalList<T> &OptimalList<T>::operator=(OptimalList<T> &l)
         for (int i=0; i<mCount; ++i)
         {
             *reinterpret_cast<T**>(pointerAt(i))=new T(**reinterpret_cast<T**>(l.pointerAt(i)));
+        }
+    }
+    else
+    if (QTypeInfo<T>::isComplex)
+    {
+        for (int i=0; i<mCount; ++i)
+        {
+            new (pointerAt(i)) T(*reinterpret_cast<T*>(l.pointerAt(i)));
         }
     }
     else
