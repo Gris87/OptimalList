@@ -305,7 +305,7 @@ void MainWindow::on_startButton_clicked()
     ui->progressBar->setMaximum(21*3*ui->testsTabWidget->count());
     ui->progressBar->setValue(0);
 
-    /*
+
     testList<bool>("bool");
     testList<char>("char");
     testList<signed char>("signed char");
@@ -326,7 +326,6 @@ void MainWindow::on_startButton_clicked()
     testList<sMediumStruct>("sMediumStruct");
     testList<sLargeStruct>("sLargeStruct");
     testList<sHugeStruct>("sHugeStruct");
-    */
     testList<QString>("QString");
 
     for (int i=0; i<ui->testsTabWidget->count(); ++i)
