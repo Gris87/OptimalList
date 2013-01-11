@@ -155,19 +155,7 @@ void MainWindow::testList(const QString aElementName)
 
     aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
     GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryBefore=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
-
-    qDebug()<<aMemory.cb;
-    qDebug()<<aMemory.PageFaultCount;
-    qDebug()<<aMemory.PeakWorkingSetSize;
-    qDebug()<<aMemory.WorkingSetSize;
-    qDebug()<<aMemory.QuotaPeakPagedPoolUsage;
-    qDebug()<<aMemory.QuotaPagedPoolUsage;
-    qDebug()<<aMemory.QuotaPeakNonPagedPoolUsage;
-    qDebug()<<aMemory.QuotaNonPagedPoolUsage;
-    qDebug()<<aMemory.PagefileUsage;
-    qDebug()<<aMemory.PeakPagefileUsage;
-    qDebug()<<aMemory.PrivateUsage;
+    aMemoryBefore=aMemory.PagefileUsage;
 
     aStart=QDateTime::currentMSecsSinceEpoch();
 
@@ -180,7 +168,7 @@ void MainWindow::testList(const QString aElementName)
 
     aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
     GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryAfter=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
+    aMemoryAfter=aMemory.PagefileUsage;
 
 
 
@@ -242,7 +230,7 @@ void MainWindow::testList(const QString aElementName)
 
     aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
     GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryBefore=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
+    aMemoryBefore=aMemory.PagefileUsage;
 
     aStart=QDateTime::currentMSecsSinceEpoch();
 
@@ -255,7 +243,7 @@ void MainWindow::testList(const QString aElementName)
 
     aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
     GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryAfter=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
+    aMemoryAfter=aMemory.PagefileUsage;
 
 
 
