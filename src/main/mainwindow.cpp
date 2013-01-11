@@ -120,7 +120,7 @@ void MainWindow::testList(const QString aElementName)
     T aValue;
 
 //  int aElemCount=15000000; // 1GB RAM free required
-    int aElemCount=15000;
+    int aElemCount=50000;
 
     int lastRow=((CopyableTable*)ui->testsTabWidget->widget(0))->rowCount();
 
@@ -153,8 +153,21 @@ void MainWindow::testList(const QString aElementName)
     //                           QT LIST
     //============================================================
 
-    GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
-    aMemoryBefore=aMemory.WorkingSetSize;
+    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
+    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
+    aMemoryBefore=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
+
+    qDebug()<<aMemory.cb;
+    qDebug()<<aMemory.PageFaultCount;
+    qDebug()<<aMemory.PeakWorkingSetSize;
+    qDebug()<<aMemory.WorkingSetSize;
+    qDebug()<<aMemory.QuotaPeakPagedPoolUsage;
+    qDebug()<<aMemory.QuotaPagedPoolUsage;
+    qDebug()<<aMemory.QuotaPeakNonPagedPoolUsage;
+    qDebug()<<aMemory.QuotaNonPagedPoolUsage;
+    qDebug()<<aMemory.PagefileUsage;
+    qDebug()<<aMemory.PeakPagefileUsage;
+    qDebug()<<aMemory.PrivateUsage;
 
     aStart=QDateTime::currentMSecsSinceEpoch();
 
@@ -165,8 +178,9 @@ void MainWindow::testList(const QString aElementName)
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
-    GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
-    aMemoryAfter=aMemory.WorkingSetSize;
+    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
+    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
+    aMemoryAfter=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
 
 
 
@@ -226,8 +240,9 @@ void MainWindow::testList(const QString aElementName)
     //                        OPTIMAL LIST
     //============================================================
 
-    GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
-    aMemoryBefore=aMemory.WorkingSetSize;
+    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
+    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
+    aMemoryBefore=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
 
     aStart=QDateTime::currentMSecsSinceEpoch();
 
@@ -238,8 +253,9 @@ void MainWindow::testList(const QString aElementName)
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
 
-    GetProcessMemoryInfo(aProcess, &aMemory, sizeof(PROCESS_MEMORY_COUNTERS));
-    aMemoryAfter=aMemory.WorkingSetSize;
+    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
+    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
+    aMemoryAfter=aMemory.PrivateUsage+aMemory.WorkingSetSize+aMemory.PagefileUsage;
 
 
 
@@ -302,8 +318,7 @@ void MainWindow::on_startButton_clicked()
     ui->startButton->setEnabled(false);
 
     ui->testsTabWidget->setCurrentIndex(0);
-
-    disconnect(ui->testsTabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_testsTabWidget_currentChanged(int)));
+    ui->testsTabWidget->blockSignals(true);
 
     for (int i=0; i<ui->testsTabWidget->count(); ++i)
     {
@@ -347,7 +362,7 @@ void MainWindow::on_startButton_clicked()
     ui->testsTabWidget->setCurrentIndex(0);
     mLastTabIndex=0;
 
-    connect(ui->testsTabWidget, SIGNAL(currentChanged(int)), this, SLOT(on_testsTabWidget_currentChanged(int)));
+    ui->testsTabWidget->blockSignals(false);
 
     ui->progressBar->setValue(0);
 
