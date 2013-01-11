@@ -3,18 +3,7 @@
 
 #include <QMainWindow>
 
-#include <QDateTime>
-
-#include <windows.h>
-#include <psapi.h>
-
-#include <QList>
-#include "src/list/optimallist.h"
-
-#include "src/widgets/tablenumericitem.h"
-#include "src/widgets/copyabletable.h"
-
-#include "types.h"
+class CopyableTable;
 
 namespace Ui {
 class MainWindow;

@@ -1,6 +1,16 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QDateTime>
+#include <QList>
+#include <windows.h>
+#include <psapi.h>
+
+#include "src/optimallist/optimallist.h"
+#include "src/widgets/tablenumericitem.h"
+#include "src/widgets/copyabletable.h"
+#include "types.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
