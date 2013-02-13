@@ -17,10 +17,6 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
-private slots:
-    void on_startButton_clicked();
-    void on_testsTabWidget_currentChanged(int index);
-
 private:
     Ui::MainWindow *ui;
     int mLastTabIndex;
@@ -30,6 +26,10 @@ private:
     void calculateRate(CopyableTable *aTable, int row);
     void setAndCalculate(CopyableTable *aTable, int row, QString aText);
     template <typename T> void testList(const QString aElementName);
+
+private slots:
+    void on_startButton_clicked();
+    void on_testsTabWidget_currentChanged(int index);
 };
 
 #endif // MAINWINDOW_H

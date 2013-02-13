@@ -1,12 +1,14 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2012-06-13T21:02:44
+# Project created by QtCreator 2013-02-13T22:30:24
 #
 #-------------------------------------------------
 
 include("src/optimallist/optimallist.pri")
 
 QT       += core gui
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = OptimalList
 TEMPLATE = app
@@ -28,7 +30,7 @@ CONFIG (debug, debug|release) {
     RCC_DIR = release/gen
 }
 
-SOURCES +=  src/main.cpp\
+SOURCES +=  src/main.cpp \
             src/main/mainwindow.cpp \
             src/widgets/copyabletable.cpp \
             src/widgets/tablenumericitem.cpp

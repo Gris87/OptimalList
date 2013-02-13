@@ -3,8 +3,6 @@
 
 #include <QTableWidget>
 #include <QKeyEvent>
-#include <QApplication>
-#include <QClipboard>
 
 class CopyableTable : public QTableWidget
 {

@@ -1,5 +1,8 @@
 #include "copyabletable.h"
 
+#include <QApplication>
+#include <QClipboard>
+
 CopyableTable::CopyableTable(QWidget *parent) :
         QTableWidget(parent)
 {

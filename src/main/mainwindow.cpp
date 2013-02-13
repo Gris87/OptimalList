@@ -6,9 +6,9 @@
 #include <windows.h>
 #include <psapi.h>
 
-#include "src/optimallist/optimallist.h"
-#include "src/widgets/tablenumericitem.h"
-#include "src/widgets/copyabletable.h"
+#include "../optimallist/optimallist.h"
+#include "../widgets/tablenumericitem.h"
+#include "../widgets/copyabletable.h"
 #include "types.h"
 
 MainWindow::MainWindow(QWidget *parent) :
