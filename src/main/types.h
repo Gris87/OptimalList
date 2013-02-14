@@ -3,7 +3,7 @@
 
 struct sTinyStruct
 {
-    byte c;
+    qint8 c;
 };
 
 struct sSmallStruct

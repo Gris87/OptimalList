@@ -2,6 +2,7 @@
 #define COPYABLETABLE_H
 
 #include <QTableWidget>
+
 #include <QKeyEvent>
 
 class CopyableTable : public QTableWidget

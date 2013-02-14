@@ -2,7 +2,6 @@
 #include "ui_mainwindow.h"
 
 #include <QDateTime>
-#include <QList>
 #include <windows.h>
 #include <psapi.h>
 
