@@ -16,7 +16,9 @@ TEMPLATE = app
 RC_FILE = Resources.rc
 RESOURCES += Resources.qrc
 
-LIBS += -lpsapi
+win32 {
+    LIBS += -lpsapi
+}
 
 CONFIG (debug, debug|release) {
     DESTDIR = debug/

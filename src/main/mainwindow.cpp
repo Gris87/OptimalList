@@ -2,8 +2,13 @@
 #include "ui_mainwindow.h"
 
 #include <QDateTime>
+
+#ifdef Q_OS_WIN
 #include <windows.h>
 #include <psapi.h>
+#else
+#include <QFile>
+#endif
 
 #include "../optimallist/optimallist.h"
 #include "../widgets/tablenumericitem.h"
@@ -111,6 +116,45 @@ void MainWindow::setAndCalculate(CopyableTable *aTable, int row, QString aText)
     calculateRate(aTable, row);
 }
 
+qint64 memoryUsage()
+{
+#ifdef Q_OS_WIN
+    HANDLE aProcess=GetCurrentProcess();
+
+    PROCESS_MEMORY_COUNTERS aMemory;
+    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
+    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
+
+    return aMemory.PagefileUsage;
+#else
+    QFile aFile("/proc/self/status");
+    aFile.open(QIODevice::ReadOnly);
+
+    QString aStat;
+
+    do
+    {
+        QString aLine=QString::fromUtf8(aFile.readLine());
+
+        if (aLine.startsWith("VmData:"))
+        {
+            aStat=aLine.mid(7).trimmed();
+            aStat.remove(aStat.length()-3, 3);
+            break;
+        }
+
+        if (aLine=="")
+        {
+            break;
+        }
+    } while (true);
+
+    aFile.close();
+
+    return aStat.toLongLong();
+#endif
+}
+
 template <typename T>
 void MainWindow::testList(const QString aElementName)
 {
@@ -128,8 +172,6 @@ void MainWindow::testList(const QString aElementName)
 
     qint64 aMemoryBefore;
     qint64 aMemoryAfter;
-    HANDLE aProcess=GetCurrentProcess();
-    PROCESS_MEMORY_COUNTERS aMemory;
 
     //------------------------------------------------------------
 
@@ -152,10 +194,7 @@ void MainWindow::testList(const QString aElementName)
     //                           QT LIST
     //============================================================
 
-    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
-    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryBefore=aMemory.PagefileUsage;
-
+    aMemoryBefore=memoryUsage();
     aStart=QDateTime::currentMSecsSinceEpoch();
 
     for (int i=0; i<aElemCount; ++i)
@@ -164,10 +203,7 @@ void MainWindow::testList(const QString aElementName)
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
-    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryAfter=aMemory.PagefileUsage;
+    aMemoryAfter=memoryUsage();
 
 
 
@@ -227,10 +263,7 @@ void MainWindow::testList(const QString aElementName)
     //                        OPTIMAL LIST
     //============================================================
 
-    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
-    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryBefore=aMemory.PagefileUsage;
-
+    aMemoryBefore=memoryUsage();
     aStart=QDateTime::currentMSecsSinceEpoch();
 
     for (int i=0; i<aElemCount; ++i)
@@ -239,10 +272,7 @@ void MainWindow::testList(const QString aElementName)
     }
 
     aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    aMemory.cb=sizeof(PROCESS_MEMORY_COUNTERS);
-    GetProcessMemoryInfo(aProcess, &aMemory, aMemory.cb);
-    aMemoryAfter=aMemory.PagefileUsage;
+    aMemoryAfter=memoryUsage();
 
 
 
