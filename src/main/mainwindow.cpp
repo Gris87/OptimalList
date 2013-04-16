@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <QDateTime>
+#include <QThread>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -37,8 +38,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
         aTable->setColumnWidth(0, 25);
         aTable->setColumnWidth(1, 400);
-        aTable->setColumnWidth(2, 125);
-        aTable->setColumnWidth(3, 125);
+        aTable->setColumnWidth(2, 135);
+        aTable->setColumnWidth(3, 135);
         aTable->setColumnWidth(4, 75);
 
         ui->testsTabWidget->addTab(aTable, "");
@@ -76,30 +77,39 @@ void MainWindow::calculateRate(CopyableTable *aTable, int row)
 {
     double aValue1=aTable->item(row, 2)->text().toDouble();
     double aValue2=aTable->item(row, 3)->text().toDouble();
+    double aRate;
 
     if (aValue2==0)
     {
         if (aValue1==0)
         {
-            setItemAndScroll(aTable, row, 4, QString::number(1, 'f', 3));
+            aRate=1;
         }
         else
         {
-            setItemAndScroll(aTable, row, 4, QString::number(aValue1, 'f', 3));
+            aRate=aValue1;
         }
     }
     else
     {
-        setItemAndScroll(aTable, row, 4, QString::number(aValue1/aValue2, 'f', 3));
+        aRate=aValue1/aValue2;
     }
+
+    setItemAndScroll(aTable, row, 4, QString::number(aRate, 'f', 3));
 
     aTable->item(row, 3)->setFont(QFont("Arial", 12, QFont::Bold));
     aTable->item(row, 4)->setFont(QFont("Arial", 12, QFont::Bold));
 
-    if (aValue2<=aValue1)
+    if (qAbs(aRate-1)<0.100)
     {
         aTable->item(row, 3)->setTextColor(QColor(128, 128, 255));
         aTable->item(row, 4)->setTextColor(QColor(128, 128, 255));
+    }
+    else
+    if (aValue2<=aValue1)
+    {
+        aTable->item(row, 3)->setTextColor(QColor(96, 190, 96));
+        aTable->item(row, 4)->setTextColor(QColor(96, 190, 96));
     }
     else
     {
@@ -151,27 +161,45 @@ qint64 memoryUsage()
 
     aFile.close();
 
-    return aStat.toLongLong();
+    return aStat.toLongLong()*1024;
 #endif
+}
+
+qint64 memoryDiff(const qint64 aMemoryBefore)
+{
+    int aAttempt=0;
+
+    while (aAttempt<10)
+    {
+        ++aAttempt;
+
+        qint64 aMemoryUsed=memoryUsage();
+
+        if (aMemoryUsed>aMemoryBefore)
+        {
+            return aMemoryUsed-aMemoryBefore;
+        }
+
+        QThread::currentThread()->msleep(100);
+    }
+
+    return 0;
 }
 
 template <typename T>
 void MainWindow::testList(const QString aElementName)
 {
-    OptimalList<T> aMyList;
-    QList<T> aQtList;
     T aValue;
 
 //  int aElemCount=15000000; // 1GB RAM free required
-    int aElemCount=50000;
+    int aElemCount=15000000;
 
     int lastRow=((CopyableTable*)ui->testsTabWidget->widget(0))->rowCount();
 
     qint64 aStart;
     qint64 aTimeStamp;
 
-    qint64 aMemoryBefore;
-    qint64 aMemoryAfter;
+    qint64 aMemoryUsed;
 
     //------------------------------------------------------------
 
@@ -193,141 +221,147 @@ void MainWindow::testList(const QString aElementName)
     //============================================================
     //                           QT LIST
     //============================================================
-
-    aMemoryBefore=memoryUsage();
-    aStart=QDateTime::currentMSecsSinceEpoch();
-
-    for (int i=0; i<aElemCount; ++i)
     {
-        aQtList.append(aValue);
+        QList<T> aQtList;
+
+        aMemoryUsed=memoryUsage();
+        aStart=QDateTime::currentMSecsSinceEpoch();
+
+        for (int i=0; i<aElemCount; ++i)
+        {
+            aQtList.append(aValue);
+        }
+
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+        aMemoryUsed=memoryDiff(aMemoryUsed);
+
+
+
+        setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(0)), lastRow, 2, QString::number(aMemoryUsed));
+        setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(1)), lastRow, 2, QString::number(aTimeStamp-aStart));
+
+        //------------------------------------------------------------
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+        aQtList.clear();
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+        setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, 2, QString::number(aTimeStamp-aStart));
+
+        //------------------------------------------------------------
+
+        srand(mRandomSeed);
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+
+        for (int i=0; i<aElemCount/100; ++i)
+        {
+            aQtList.insert(rand() % (aQtList.length()+1), aValue);
+        }
+
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+        setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, 2, QString::number((aTimeStamp-aStart)*100));
+
+        //------------------------------------------------------------
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+        QList<T> aTempList=aQtList;
+        aTempList.detach();
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+        aTempList.clear();
+
+        setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, 2, QString::number(aTimeStamp-aStart));
+
+        //------------------------------------------------------------
+
+        srand(mRandomSeed);
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+
+        while (aQtList.length()>0)
+        {
+            aQtList.removeAt(rand() % aQtList.length());
+        }
+
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+        setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, 2, QString::number((aTimeStamp-aStart)*100));
     }
-
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-    aMemoryAfter=memoryUsage();
-
-
-
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(0)), lastRow, 2, QString::number(aMemoryAfter-aMemoryBefore));
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(1)), lastRow, 2, QString::number(aTimeStamp-aStart));
-
-    //------------------------------------------------------------
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-    aQtList.clear();
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, 2, QString::number(aTimeStamp-aStart));
-
-    //------------------------------------------------------------
-
-    srand(mRandomSeed);
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-
-    for (int i=0; i<aElemCount/100; ++i)
-    {
-        aQtList.insert(rand() % (aQtList.length()+1), aValue);
-    }
-
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, 2, QString::number((aTimeStamp-aStart)*100));
-
-    //------------------------------------------------------------
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-    QList<T> aTempList=aQtList;
-    aTempList.detach();
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    aTempList.clear();
-
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, 2, QString::number(aTimeStamp-aStart));
-
-    //------------------------------------------------------------
-
-    srand(mRandomSeed);
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-
-    while (aQtList.length()>0)
-    {
-        aQtList.removeAt(rand() % aQtList.length());
-    }
-
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    setItemAndScroll(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, 2, QString::number((aTimeStamp-aStart)*100));
 
     //============================================================
     //                        OPTIMAL LIST
     //============================================================
-
-    aMemoryBefore=memoryUsage();
-    aStart=QDateTime::currentMSecsSinceEpoch();
-
-    for (int i=0; i<aElemCount; ++i)
     {
-        aMyList.append(aValue);
+        OptimalList<T> aMyList;
+
+        aMemoryUsed=memoryUsage();
+        aStart=QDateTime::currentMSecsSinceEpoch();
+
+        for (int i=0; i<aElemCount; ++i)
+        {
+            aMyList.append(aValue);
+        }
+
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+        aMemoryUsed=memoryDiff(aMemoryUsed);
+
+
+
+        setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(0)), lastRow, QString::number(aMemoryUsed));
+        setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(1)), lastRow, QString::number(aTimeStamp-aStart));
+
+        //------------------------------------------------------------
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+        aMyList.clear();
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+        setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, QString::number(aTimeStamp-aStart));
+
+        //------------------------------------------------------------
+
+        srand(mRandomSeed);
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+
+        for (int i=0; i<aElemCount/100; ++i)
+        {
+            aMyList.insert(rand() % (aMyList.length()+1), aValue);
+        }
+
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+
+
+        setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, QString::number((aTimeStamp-aStart)*100));
+
+        //------------------------------------------------------------
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+        OptimalList<T> aTempList2=aMyList;
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+        aTempList2.clear();
+
+        setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, QString::number(aTimeStamp-aStart));
+
+        //------------------------------------------------------------
+
+        srand(mRandomSeed);
+
+        aStart=QDateTime::currentMSecsSinceEpoch();
+
+        while (aMyList.length()>0)
+        {
+            aMyList.removeAt(rand() % aMyList.length());
+        }
+
+        aTimeStamp=QDateTime::currentMSecsSinceEpoch();
+
+        setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, QString::number((aTimeStamp-aStart)*100));
     }
-
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-    aMemoryAfter=memoryUsage();
-
-
-
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(0)), lastRow, QString::number(aMemoryAfter-aMemoryBefore));
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(1)), lastRow, QString::number(aTimeStamp-aStart));
-
-    //------------------------------------------------------------
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-    aMyList.clear();
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(2)), lastRow, QString::number(aTimeStamp-aStart));
-
-    //------------------------------------------------------------
-
-    srand(mRandomSeed);
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-
-    for (int i=0; i<aElemCount/100; ++i)
-    {
-        aMyList.insert(rand() % (aMyList.length()+1), aValue);
-    }
-
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-
-
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(3)), lastRow, QString::number((aTimeStamp-aStart)*100));
-
-    //------------------------------------------------------------
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-    OptimalList<T> aTempList2=aMyList;
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    aTempList2.clear();
-
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(4)), lastRow, QString::number(aTimeStamp-aStart));
-
-    //------------------------------------------------------------
-
-    srand(mRandomSeed);
-
-    aStart=QDateTime::currentMSecsSinceEpoch();
-
-    while (aMyList.length()>0)
-    {
-        aMyList.removeAt(rand() % aMyList.length());
-    }
-
-    aTimeStamp=QDateTime::currentMSecsSinceEpoch();
-
-    setAndCalculate(((CopyableTable*)ui->testsTabWidget->widget(5)), lastRow, QString::number((aTimeStamp-aStart)*100));
 }
 
 void MainWindow::on_startButton_clicked()
